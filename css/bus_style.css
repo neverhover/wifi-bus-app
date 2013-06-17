@@ -1,0 +1,142 @@
+
+
+.clearfix:after {
+	visibility: hidden;
+	display: block;
+	content: "";
+	clear: both;
+}
+
+.gallery{
+	float: left;
+	width:80%;
+}
+
+
+.gallery-entries{ 
+	list-style:none;
+	padding:0;
+	float: left;
+}
+.gallery-entries .gallery-item{
+	float: left;
+	margin-right:1%;
+	margin-bottom:2%;
+}
+.gallery-entries .gallery-item img{
+	-webkit-box-shadow: #999 0 3px 5px;
+	-moz-box-shadow: #999 0 3px 5px;
+	box-shadow: #999 0 3px 5px;
+	border: 1px solid #fff;
+	max-width:100%;
+}
+
+.gallery-entries .gallery-item a{
+	font-weight:normal;
+	text-decoration:none;
+}
+
+.gallery-entries .gallery-item a h3{
+	width:160px;
+	white-space:nowrap;
+	font-size:1em;
+	overflow: hidden;
+	text-overflow:ellipsis;
+	padding-top:3px;
+	text-align: center;
+}
+
+.gallery-entries .gallery-item  a:hover h3, .gallery-entries .gallery-item  a:active h3{
+	text-decoration:underline;
+}
+
+
+/* larger than standard 960 (devices and browsers) */
+	@media only screen and (min-width: 960px) {
+	.gallery{
+		float: left;
+		width:80%;
+	}
+	.secondary{
+		float: left;
+		width:20%;
+	}
+}
+
+
+/* Tablet Portrait size to standard 960 (devices and browsers) */
+	@media only screen and (min-width: 768px) and (max-width: 959px) {
+	
+	.gallery{
+		float: left;
+		width:80%;
+	}
+	.gallery-entries .gallery-item{
+		width:22%;
+		margin-right:2%;
+	}
+	.gallery-entries .gallery-item a h3{
+		width:100%;
+	}
+
+	.secondary{
+		float: left;
+		width:20%;
+	}
+
+}
+
+/* Mobile Landscape Size to Tablet Portrait (devices and browsers) */
+	@media only screen and (min-width: 480px) and (max-width: 767px) {
+	.gallery{
+		float: none;
+		width:100%;
+	}
+	.gallery-entries .gallery-item{
+		width:30%;
+		margin-right:2%;
+	}
+	.gallery-entries .gallery-item a h3{
+		width:100%;
+	}
+
+	.secondary{
+		float: none;
+		width:100%;
+	}
+	.share .share-group{
+		clear: none;
+		margin-bottom:.3em;
+	}
+}
+
+
+/* Mobile Portrait Size to Mobile Landscape Size (devices and browsers) */
+	@media only screen and (max-width: 479px) {
+	.gallery{
+		float: none;
+		width:100%;
+	}
+	.gallery-entries .gallery-item{
+		width:45%;
+		margin-right:4%;
+	}
+	.gallery-entries .gallery-item a h3{
+		font-size:1em;
+		width:100%;
+	}
+	.secondary{
+		float: none;
+		display: block;
+		width:100%;
+	}
+	.share .share-group{
+		clear: both;
+		margin-bottom:.3em;
+	}
+	nav.gallery-pages ul li a{
+		padding:10px .6em;
+	}
+
+
+}

@@ -1,0 +1,99 @@
+<div data-role="page" id="index_bus" data-title="实时公交 成都市" >
+	<div data-role="header" data-position="fixed">
+		<a href="../index.html" data-role="button" data-icon="arrow-l" data-iconpos="left" data-inline="true" data-theme="b" data-transition="pop">返回</a>
+		<h1>实时公交··成都市</h1>
+		<div data-role="navbar" >
+		    <ul ms-controller="mod_bus_search" ms-each-li="rows">
+		        <li>
+		        	<a href="#" ms-class-ui-btn-active="li.active" data-theme="c" ms-data-bus-type-idx="$index" ms-data-bus-type="li.ids" ms-click="li_click"><br>{{li.name}}</a>
+		        </li>
+		    </ul>
+		</div><!-- /navbar -->
+	</div>
+
+	<div data-role="content">
+		<div>
+			<form ms-controller="mod_bus_search" action="" method="get">
+				<div ms-visible="rows[0].active">
+					<input type="text" id="bus_line" value="" placeholder="请输入线路名称,如: 92路" >
+				</div>
+
+				<div ms-visible="rows[1].active">
+					<input type="text" id="bus_staion" value="" placeholder="请输入站点名称">
+				</div>
+
+				<div ms-visible="rows[2].active">
+					<input type="text" name="bus_start_point" id="bus_start_point" placeholder="请输入起点" ms-model="s_point" >
+					<input type="text" name="bus_end_point" id="bus_end_point" placeholder="请输入终点" ms-model="e_point">
+					<a href="#" data-role="button" data-icon="refresh" data-iconpos="right" data-mini="true" data-theme="e" ms-click="ride_switch">切换</a>
+				</div>
+				<input type="hidden" name="search_type" ms-model="search_type">
+				<input type="submit" value="查询"  data-theme="b">
+			</form>
+		</div>
+	</div>
+
+	<div data-role="footer" data-position="fixed">
+		<h4>Page Footer</h4>
+	</div>
+
+	<script type="text/javascript">
+		// $(document).ready(function(){
+		// 	console.log("heloo");
+		// });
+		// ( function( $, undefined ) {
+		//     $( document ).bind( "pageinit", function( e ) {
+		//         $( "#prepend, #append", e.target ).on( "click", function( e ) {
+		//            console.log("click");
+		//         });
+		//         console.log("init");
+		//     });
+		//     console.log("outer");
+		// })( jQuery );
+
+		avalon.ready(function() {
+		    avalon.define("mod_bus_search", function(vm) {
+		       vm.rows=[
+		       	{name:"线路查询",ids:"type_line",active:false},
+		       	{name:"站点查询",ids:"type_sta",active:true},
+		       	{name:"换乘方案",ids:"type_ride",active:false},
+		       ];
+		       vm.search_type = vm.rows[1].ids;
+		       vm.s_point = vm.e_point = "";
+		       //切换active,并修改查询类型
+		       vm.li_click = function(){
+		       		var row_id = $1(this).data("bus-type-idx");
+		       		//$1.log($1(this).data("bus-type-idx"))
+		       		//rows[row_id].active=true;
+		       		var count = 0;
+		       		vm.rows.forEach(function(row){
+		       			//$1.log(row);
+		       			if(count == row_id){
+		       				row.active= true;
+		       				vm.search_type = row.ids;
+		       			}else{
+		       				row.active = false;
+		       			}
+		       			count++;
+		       		});
+		       }
+		       //换乘切换事件
+		       vm.ride_switch = function(){
+		       		var tmp = vm.s_point;
+		       		vm.s_point = vm.e_point;
+		       		vm.e_point = tmp;
+		       }
+		    });
+		    avalon.scan();
+		})
+
+		 $1.require("lang",function(){
+                $1.log($+"")//[object jQuery]
+                $1.log("nihao");
+         })
+
+	</script>
+</div>
+
+
+
