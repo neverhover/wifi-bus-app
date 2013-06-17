@@ -17,6 +17,24 @@
 	<script src="js/mass_merge.js"></script>
 	<!-- MVVM框架,用于后续的list -->
 	<script src="js/avalon_min.js"></script>
+	<script type="text/javascript">
+		( function( $, undefined ) {
+		    $( document ).bind( "pagechange", function( e ) {
+		    	var pre_id=$.mobile.urlHistory.previousIndex;
+		    	var act_id=$.mobile.urlHistory.activeIndex;
+                if (pre_id && (pre_id != act_id)) {
+                	//得到完整的URL
+                    var dataUrl = $.mobile.urlHistory.stack[pre_id].pageUrl;
+                    var forwordPage=$.mobile.pageContainer.children(":jqmData(url='" + dataUrl + "')");
+                    if(forwordPage){
+                    	$1.log("we did remove");
+                        forwordPage.remove();
+                    }
+                }
+                $.mobile.urlHistory.clearForward();
+		    });
+		})( jQuery );
+	</script>
 </head>
 
 <body> 

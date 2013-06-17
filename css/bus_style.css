@@ -46,6 +46,18 @@
 	text-align: center;
 }
 
+.bus_form {
+	width:80%; 
+	margin: 50px auto
+}
+.bus_line{
+	width: 90%;
+	margin-top: 20px;
+	margin: auto;
+}
+.bus_line h2 h3 h4{
+	text-align: center;
+}
 .gallery-entries .gallery-item  a:hover h3, .gallery-entries .gallery-item  a:active h3{
 	text-decoration:underline;
 }
@@ -60,6 +72,15 @@
 	.secondary{
 		float: left;
 		width:20%;
+	}
+	.bus_form {
+		width:50%; 
+		margin: 50px auto
+	}
+	.bus_line{
+		width: 50%;
+		margin-top: 20px;
+		margin: auto;
 	}
 }
 

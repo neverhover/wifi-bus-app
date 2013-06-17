@@ -1,0 +1,41 @@
+<div data-role="dialog" id="MessageDialog" style="z-index: 999">
+    <div data-role="header" data-theme="b">
+        <h1>Dialog</h1>
+    </div>
+    <div data-role="content" data-theme="b" ms-controller="mod_bus_dialog">
+            <h1 ms-html="search_type"></h1>
+            <p ms-html="line_info"></p>
+            <a href="bus/bus_index.html" data-role="button" data-rel="back" data-theme="b">Sounds good</a>       
+            <a href="bus/bus_index.html" data-role="button" data-rel="back" data-theme="c">再试试</a>    
+    </div>
+    <script type="text/javascript">
+        avalon.ready(function() {
+            if(window.bus_data_arr== null || window.bus_data_arr == undefined){
+                window.bus_data_arr={};
+            }
+            avalon.define("mod_bus_dialog", function(vm) {
+                var is_ok = true;
+                switch(window.bus_data_arr.last_search){
+                    case "type_line":
+                        vm.search_type = "线路查找"
+                        break;
+                    case "type_sta":
+                        vm.search_type = "站点查找"
+                        break;
+                    case "type_ride":
+                        vm.search_type = "换成查找"
+                        break;
+                    default:
+                         vm.search_type="没有相关信息";
+                         is_ok = false;
+                }
+                if(is_ok){
+                    vm.line_info = $1.dump( window.bus_data_arr.line_info[0]);
+                }
+                    
+                
+            });
+            avalon.scan();
+        });
+    </script>
+</div>

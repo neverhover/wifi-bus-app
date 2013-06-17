@@ -1,0 +1,120 @@
+<div data-role="page" id="bus_line" data-title="线路详情" ms-controller="mod_bus_line" data-dom-cache="true">
+	<div data-role="header" data-position="fixed">
+		<a href="/bus/bus_index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="pop" data-rel="back">返回</a>
+		<h1 ms-html="title"></h1>
+		
+	</div>
+
+	<div data-role="content">
+
+		<div class="bus_line">
+			<label ms-html="info">
+			</label>
+			<div data-role="navbar" >
+			    <ul ms-each-li="rows">
+			        <li>
+			        	<a href="#" ms-class-ui-btn-active="li.active" data-theme="c" ms-data-bus-type-idx="$index" ms-click="li_click"><br>{{li.name}}</a>
+			        </li>
+			    </ul>
+			</div><!-- /navbar -->
+			<br>
+			<div ms-each-li="rows">
+				<div ms-visible="li.active" data-transition="pop">
+					<ul data-role="listview" data-filter="true" data-filter-placeholder="查找站点" data-inset="true" class="ui-icon-alt"  ms-each-sta="li.data" >
+					    <li><a href="#" ms-click="sta_click">{{sta}}</a></li>
+					</ul>
+				<div>
+			</div>
+		</div>
+
+	</div>
+
+
+	<div data-role="footer" data-position="fixed">
+		<h4>Page Footer</h4>
+	</div>
+
+	<script type="text/javascript">
+		// $(document).ready(function(){
+		// 	console.log("heloo");
+		// });
+		
+
+		avalon.ready(function() {
+			if(window.bus_data_arr== null || window.bus_data_arr == undefined){
+				window.bus_data_arr={};
+				return false;
+			}
+			$1.log(this);
+			//$1.data(document.body, "test1", window.bus_data_arr.line_info[0]);
+			var info_bak = window.bus_data_arr.line_info[0];
+			var sta_arr = [];
+
+			sta_arr.push({"name":info_bak.line_up[info_bak.line_up.length-1],data:info_bak.line_up,active:true});
+			if(!info_bak.line_loop){
+				sta_arr.push({"name":info_bak.line_down[info_bak.line_down.length-1],data:info_bak.line_down,active:false});
+			}
+
+		    avalon.define("mod_bus_line", function(vm) {
+				vm.title="线路详情 "+info_bak.line_name;
+				vm.info = info_bak.line_info;
+				if(!info_bak.line_active){
+					vm.rows=[{name:"暂无信息..停运中"}];
+					return;
+				}
+				$1.log("write");
+				vm.rows=sta_arr;
+		       	//切换active
+		       	vm.li_click = function(){
+		       		var row_id = $1(this).data("bus-type-idx");
+		       		//$1.log($1(this).data("bus-type-idx"))
+		       		//rows[row_id].active=true;
+		       		var count = 0;
+		       		vm.rows.forEach(function(row){
+		       			//$1.log(row);
+		       			if(count == row_id){
+		       				row.active= true;
+		       			}else{
+		       				row.active = false;
+		       			}
+		       			count++;
+		       		});
+		       	}
+		      	vm.sta_click = function(){
+		      		
+		      		$(this).attr("href","/bus/bus_sta.html?name="+ $(this).html());
+		      		$.ajax({
+		       			type: 'GET',
+						url: "/test_data/"+"type_sta.json",
+						data: {"bus_station":$(this).html(),"search_type":"type_sta"},
+						cache: false,
+						beforeSend:function(){
+							$.mobile.showPageLoadingMsg();
+						},
+						success:function(msg){
+							$1.log(msg);
+							msg = eval("(" + msg + ")");
+							if(msg.length ==0){
+								$1.log(msg);
+							}else{
+								window.bus_data_arr.last_search = "type_sta";
+								window.bus_data_arr.line_info = msg;
+								
+							}
+							$(this).trigger('click');
+						},
+						complete:function(){
+							// Hide loading message
+							$.mobile.hidePageLoadingMsg();
+						}
+		       		});
+		      		
+		      		return false;
+		      	}
+		   		      
+		    });
+		    avalon.scan();
+		})
+
+	</script>
+</div>

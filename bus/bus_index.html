@@ -1,6 +1,6 @@
-<div data-role="page" id="index_bus" data-title="实时公交 成都市" >
+<div data-role="page" id="index_bus" data-title="实时公交 成都市">
 	<div data-role="header" data-position="fixed">
-		<a href="../index.html" data-role="button" data-icon="arrow-l" data-iconpos="left" data-inline="true" data-theme="b" data-transition="pop">返回</a>
+		<a href="/index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="pop">返回</a>
 		<h1>实时公交··成都市</h1>
 		<div data-role="navbar" >
 		    <ul ms-controller="mod_bus_search" ms-each-li="rows">
@@ -12,14 +12,14 @@
 	</div>
 
 	<div data-role="content">
-		<div>
-			<form ms-controller="mod_bus_search" action="" method="get">
+		<div class="bus_form">
+			<form ms-controller="mod_bus_search">
 				<div ms-visible="rows[0].active">
-					<input type="text" id="bus_line" value="" placeholder="请输入线路名称,如: 92路" >
+					<input type="number" name="bus_line" ms-model="line" placeholder="请输入线路名称,如: 92" >
 				</div>
 
 				<div ms-visible="rows[1].active">
-					<input type="text" id="bus_staion" value="" placeholder="请输入站点名称">
+					<input type="text" name="bus_station"  ms-model="station" placeholder="请输入站点名称">
 				</div>
 
 				<div ms-visible="rows[2].active">
@@ -28,10 +28,13 @@
 					<a href="#" data-role="button" data-icon="refresh" data-iconpos="right" data-mini="true" data-theme="e" ms-click="ride_switch">切换</a>
 				</div>
 				<input type="hidden" name="search_type" ms-model="search_type">
-				<input type="submit" value="查询"  data-theme="b">
+				<a href="bus_dialog.html" data-role="button" data-inline="true" data-rel="dialog" data-transition="slidedown" >Open dialog</a>
+				<a id="search_btn" href="bus_line.html" data-role="button" data-inline="true" data-transition="slidedown" >查询</a>
+				<input type="button" value="查询"  data-theme="b" ms-click="bus_commit">
 			</form>
 		</div>
 	</div>
+
 
 	<div data-role="footer" data-position="fixed">
 		<h4>Page Footer</h4>
@@ -50,8 +53,17 @@
 		//     });
 		//     console.log("outer");
 		// })( jQuery );
-
+		
+		/*
+		 * 查找到的数据会保存到	window.bus_data_arr.last_search = vm.search_type;
+								window.bus_data_arr.line_info = msg;
+		 * 利用原理为jquery mobile打开的页面在一个DOM内,同样可以利用HTML5的离线存储功能
+		 *
+		 */
 		avalon.ready(function() {
+			if(window.bus_data_arr== null || window.bus_data_arr == undefined){
+				window.bus_data_arr={};
+			}
 		    avalon.define("mod_bus_search", function(vm) {
 		       vm.rows=[
 		       	{name:"线路查询",ids:"type_line",active:false},
@@ -59,7 +71,7 @@
 		       	{name:"换乘方案",ids:"type_ride",active:false},
 		       ];
 		       vm.search_type = vm.rows[1].ids;
-		       vm.s_point = vm.e_point = "";
+		       vm.s_point = vm.e_point = vm.line = vm.station = "";
 		       //切换active,并修改查询类型
 		       vm.li_click = function(){
 		       		var row_id = $1(this).data("bus-type-idx");
@@ -83,6 +95,52 @@
 		       		vm.s_point = vm.e_point;
 		       		vm.e_point = tmp;
 		       }
+		       vm.bus_commit = function(){
+		       		$1.log(vm.search_type);
+		       		var json_url= page_url="";
+		       		switch(vm.search_type){
+		       			case "type_line":
+		       				json_url = "type_line.json";
+		       				page_url = "bus_line.html";
+		       				break;
+		       			case "type_sta":
+		       				json_url = "type_sta.json";
+		       				page_url = "bus_sta.html";
+		       				break;
+		       			case "type_ride":
+		       				json_url = "type_ride.json";
+		       				page_url = "type_ride.html";
+		       				break;
+		       		}
+		       		$.ajax({
+		       			type: 'GET',
+						url: "/test_data/"+json_url,
+						data:$(this).serialize(),
+						cache: false,
+						beforeSend:function(){
+							$.mobile.showPageLoadingMsg();
+						},
+						success:function(msg){
+							$1.log(msg);
+							msg = eval("(" + msg + ")");
+							if(msg.length ==0){
+								$1.log(msg);
+							}else{
+								window.bus_data_arr.last_search = vm.search_type;
+								window.bus_data_arr.line_info = msg;
+								$1.log(msg[0].line_up);
+								$('#search_btn').attr("href",page_url);
+								$('#search_btn').trigger('click');
+							}
+						},
+						complete:function(){
+							// Hide loading message
+							$.mobile.hidePageLoadingMsg();
+						}
+		       		});
+		       		return false;
+		       }
+		      $1.log(vm.rows);
 		    });
 		    avalon.scan();
 		})
@@ -94,6 +152,3 @@
 
 	</script>
 </div>
-
-
-
