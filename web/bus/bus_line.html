@@ -1,6 +1,6 @@
 <div data-role="page" id="bus_line" data-title="线路详情" ms-controller="mod_bus_line" data-dom-cache="true">
 	<div data-role="header" data-position="fixed">
-		<a href="/bus/bus_index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="pop" data-rel="back">返回</a>
+		<a href="/bus/bus_index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade" data-rel="back">返回</a>
 		<h1 ms-html="title"></h1>
 		
 	</div>
@@ -81,11 +81,12 @@
 		       		});
 		       	}
 		      	vm.sta_click = function(){
-		      		
+		      		//查询某一个站点的信息
 		      		$(this).attr("href","/bus/bus_sta.html?name="+ $(this).html());
 		      		$.ajax({
 		       			type: 'GET',
-						url: "/test_data/"+"type_sta.json",
+						//url: "/test_data/"+"type_sta.json",
+						url:"/action/bus_base",
 						data: {"bus_station":$(this).html(),"search_type":"type_sta"},
 						cache: false,
 						beforeSend:function(){

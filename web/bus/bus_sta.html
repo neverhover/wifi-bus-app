@@ -1,6 +1,6 @@
 <div data-role="page" id="bus_sta" data-title="线路详情" ms-controller="mod_bus_line" data-dom-cache="true">
 	<div data-role="header" data-position="fixed">
-		<a href="/bus/bus_index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="pop" data-rel="back">返回</a>
+		<a href="/bus/bus_index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade" data-rel="back">返回</a>
 		<h1 ms-html="title"></h1>
 		
 	</div>
@@ -69,13 +69,15 @@
 				vm.rows=sta_arr;
 
 		       vm.line_click = function(){
+		       		//查询某个线路的信息
 		       		console.log($1(this));
 		       		console.log($1(this).data("bus-line-name"));
 		       		
 		       		$(this).attr("href","/bus/bus_line.html?name="+ $1(this).data("bus-line-name"));
 		      		$.ajax({
 		       			type: 'GET',
-						url: "/test_data/"+"type_line.json",
+						//url: "/test_data/"+"type_line.json",
+						url:"/action/bus_base",
 						data: {"bus_line":$1(this).data("bus-line-name"),"search_type":"type_line"},
 						cache: false,
 						beforeSend:function(){

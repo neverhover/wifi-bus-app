@@ -12,6 +12,13 @@
 #define BUS_SEARCH_RIDE	"type_ride"
 
 
+enum{
+	HELP_SUCCESS = 1,
+	HELP_HW_ERROR,
+	HELP_NETWORK_ERROR,
+	HELP_FORBID,
+	HELP_NOT_PERMIT
+}help_status;
 
 
 /* ******************* function prototype ******************* */

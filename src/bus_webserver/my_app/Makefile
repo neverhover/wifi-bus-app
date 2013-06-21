@@ -1,6 +1,6 @@
 PWD=$(shell pwd)
 
-IFLAGS		+=-I $(LINK_PATH)/inc
+IFLAGS		+=-I $(LINK_PATH)/inc -I$(PWD)/include
 CFLAGS          += -fPIC   -g
 
 ifeq ($(LT_ARCH),PL_RALINK)
@@ -31,13 +31,10 @@ LINK_S_LIBS	= -lgo  -L$(ARCH_NAME)/a
 
 CFLAGS             += -fPIC   -w
 DFLAGS             += -D_REENTRANT -DPIC  $(patsubst %,-D%,$(filter BIT_%,$(MAKEFLAGS))) -DBIT_PACK_EST=$(BIT_PACK_EST) -DBIT_PACK_SSL=$(BIT_PACK_SSL)
-IFLAGS             += -I$(CONFIG)/inc
 LDFLAGS            += '-Wl,--enable-new-dtags' '-Wl,-rpath,$$ORIGIN/' '-rdynamic'
-LIBPATHS           += -L$(CONFIG)/bin
 LINK_S_LIBS        += -lpthread -lm -lrt -ldl
 
 TARGET_NAME	= my_app
-SOURCES		= my_app.c
 
 SRC_BASE=$(PWD)
 OBJ_DIR=$(ARCH_NAME)/o

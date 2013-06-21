@@ -22,7 +22,7 @@
 		    $( document ).bind( "pagechange", function( e ) {
 		    	var pre_id=$.mobile.urlHistory.previousIndex;
 		    	var act_id=$.mobile.urlHistory.activeIndex;
-                if (pre_id && (pre_id != act_id)) {
+                if ( (pre_id >0 ) && (pre_id > act_id)) {
                 	//得到完整的URL
                     var dataUrl = $.mobile.urlHistory.stack[pre_id].pageUrl;
                     var forwordPage=$.mobile.pageContainer.children(":jqmData(url='" + dataUrl + "')");
@@ -51,7 +51,7 @@
 			   					   			
 			   						   			
 						<li class="gallery-item">
-							<a href="bus/bus_index.html" data-transition="slide"><img src="http://www.jqmgallery.com/wp-content/uploads/2011/10/hadthatbeer-160.jpg"/>
+							<a href="bus/bus_index.html" data-transition="slidefade"><img src="http://www.jqmgallery.com/wp-content/uploads/2011/10/hadthatbeer-160.jpg"/>
 							<h3>实时公交</h3>
 							</a>
 							                 
@@ -59,7 +59,7 @@
 								   			
 			   						   			
 						<li class="gallery-item">
-							<a href="help/help_index.html"><img src="http://www.jqmgallery.com/wp-content/uploads/2011/10/box-160.jpg"/>
+							<a href="help/help_index.html" data-transition="slidefade"><img src="http://www.jqmgallery.com/wp-content/uploads/2011/10/box-160.jpg"/>
 							<h3>紧急求助</h3>
 							</a>
 							                 

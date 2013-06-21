@@ -1,6 +1,6 @@
 <div data-role="page" id="index_bus" data-title="实时公交 成都市">
 	<div data-role="header" data-position="fixed">
-		<a href="/index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="pop">返回</a>
+		<a href="/index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade">返回</a>
 		<h1>实时公交··成都市</h1>
 		<div data-role="navbar" >
 		    <ul ms-controller="mod_bus_search" ms-each-li="rows">
@@ -13,7 +13,7 @@
 
 	<div data-role="content">
 		<div class="bus_form">
-			<form ms-controller="mod_bus_search">
+			<form ms-controller="mod_bus_search" id="bus_search_form">
 				<div ms-visible="rows[0].active">
 					<input type="number" name="bus_line" ms-model="line" placeholder="请输入线路名称,如: 92" >
 				</div>
@@ -28,8 +28,8 @@
 					<a href="#" data-role="button" data-icon="refresh" data-iconpos="right" data-mini="true" data-theme="e" ms-click="ride_switch">切换</a>
 				</div>
 				<input type="hidden" name="search_type" ms-model="search_type">
-				<a href="bus_dialog.html" data-role="button" data-inline="true" data-rel="dialog" data-transition="slidedown" >Open dialog</a>
-				<a id="search_btn" href="bus_line.html" data-role="button" data-inline="true" data-transition="slidedown" >查询</a>
+				<a href="bus_dialog.html" data-role="button" data-inline="true" data-rel="dialog" data-transition="slidefade" >Open dialog</a>
+				<a id="search_btn" href="bus_line.html" data-role="button" data-inline="true" data-transition="slidefade" >查询</a>
 				<input type="button" value="查询"  data-theme="b" ms-click="bus_commit">
 			</form>
 		</div>
@@ -113,9 +113,10 @@
 		       				break;
 		       		}
 		       		$.ajax({
-		       			type: 'GET',
-						url: "/test_data/"+json_url,
-						data:$(this).serialize(),
+		       			type: 'POST',
+						//url: "/test_data/"+json_url,
+						url:"/action/bus_base",
+						data:$('#bus_search_form').serialize(),
 						cache: false,
 						beforeSend:function(){
 							$.mobile.showPageLoadingMsg();

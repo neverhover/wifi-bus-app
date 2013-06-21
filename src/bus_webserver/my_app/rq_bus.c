@@ -1,5 +1,6 @@
 #include "web_app_api.h"
 #include "rq_head.h"
+#include "sys_library.h"
 
 
 #define BUS_BUFF_SIZE 1024* 4
@@ -41,7 +42,7 @@ PUBLIC void action_bus_base_process(Webs *wp, char *path, char *query){
        	bus_start_point = websGetVar(wp, "bus_start_point", NULL);
 	bus_end_point = websGetVar(wp, "bus_end_point", NULL);
 
-
+	printf("%s\n",__FUNCTION__);
 	if(strcmp(search_type, BUS_SEARCH_LINE) == 0){
 		process_bus_line_req(wp);
 	}else if(strcmp(search_type, BUS_SEARCH_STA) == 0){
@@ -103,7 +104,7 @@ PRIVATE int process_bus_ride_req(Webs *wp){
 	bus_end_point = websGetVar(wp, "bus_end_point", NULL);
 	
 	real_size = get_test_ride_info(bus_start_point, bus_end_point, buff, BUS_BUFF_SIZE);
-	if(real_size < 0){
+	if(real_size <= 0){
 		process_web_write_response(wp , HTTP_CODE_OK, "[]",  3);
 	}else{
 		process_web_write_response(wp , HTTP_CODE_OK, buff, real_size);
@@ -111,4 +112,76 @@ PRIVATE int process_bus_ride_req(Webs *wp){
 }
 
 
+PRIVATE int get_test_line_info(char *name , char *pstr, int size){
+	int i = 0;
+	json_addstr2 (pstr, size, i,  "[{");
+	json_addstrav (pstr, size, i,  "line_name", name); json_addstr2 (pstr, size, i,  ",");
+	json_addstrav (pstr, size, i,  "line_info", "???? ??????--???<br>??????06:30-21:00 <br>????????06:30-20:30??06:30-21:00??07:00-21:00??07:00-20:30 <br>???? ???? ???? ???2? \
+	"); json_addstr2 (pstr, size, i,  ",");
+	
+	json_addstrav2 (pstr, size, i,  "line_up", " "); json_addstr2 (pstr, size, i,  "[");
+	json_addstr (pstr, size, i,  "??????");json_addstr2 (pstr, size, i,  ",");
+	json_addstr (pstr, size, i,  "??????");json_addstr2 (pstr, size, i,  ",");
+	json_addstr (pstr, size, i,  "??????");json_addstr2 (pstr, size, i,  ",");
+	json_addstr (pstr, size, i,  "??????");json_addstr2 (pstr, size, i,  ",");
+	json_addstr (pstr, size, i,  "??????");json_addstr2 (pstr, size, i,  ",");
+	json_addstr (pstr, size, i,  "??????");json_addstr2 (pstr, size, i,  ",");
+	json_addstr (pstr, size, i,  "??????");json_addstr2 (pstr, size, i,  "],");
+	
+	json_addstrav2 (pstr, size, i,  "line_down", " "); json_addstr2 (pstr, size, i,  "[");
+	json_addstr (pstr, size, i,  "??????");json_addstr2 (pstr, size, i,  ",");
+	json_addstr (pstr, size, i,  "??????");json_addstr2 (pstr, size, i,  ",");
+	json_addstr (pstr, size, i,  "??????");json_addstr2 (pstr, size, i,  ",");
+	json_addstr (pstr, size, i,  "??????");json_addstr2 (pstr, size, i,  ",");
+	json_addstr (pstr, size, i,  "??????");json_addstr2 (pstr, size, i,  ",");
+	json_addstr (pstr, size, i,  "??????");json_addstr2 (pstr, size, i,  ",");
+	json_addstr (pstr, size, i,  "??????");json_addstr2 (pstr, size, i,  "],");
+
+	json_addstrav2(pstr, size, i,  "line_loop", "false"); json_addstr2 (pstr, size, i,  ",");
+	json_addstrav2(pstr, size, i,  "line_active", "true");
+	json_addstr2 (pstr, size, i,  "}]");
+	return 1;
+}
+PRIVATE int get_test_sta_info(char *name , char *pstr, int size){
+	int i = 0;
+	json_addstr2 (pstr, size, i, "[{");
+	json_addstrav (pstr, size, i,  "sta_name", name); json_addstr2 (pstr, size, i,  ",");
+	json_addintav(pstr, size, i,  "sta_count", 10); json_addstr2 (pstr, size, i,  ",");
+
+	
+	json_addstrav2 (pstr, size, i,  "sta_line_arr", " "); json_addstr2 (pstr, size, i,  "[");
+	json_addstr2 (pstr, size, i,  "{");
+	json_addstrav (pstr, size, i,  "name", " 19?"); json_addstr2 (pstr, size, i,  ",");
+	json_addstrav (pstr, size, i,  "info", "??????-????<br>06:30-21:30 ");json_addstr2 (pstr, size, i,  ",");
+	json_addstrav (pstr, size, i,  "distance", " 1"); json_addstr2 (pstr, size, i,  ",");
+	json_addstr2 (pstr, size, i,  "},");
+	json_addstr2 (pstr, size, i,  "{");
+	json_addstrav (pstr, size, i,  "name", " 19?"); json_addstr2 (pstr, size, i,  ",");
+	json_addstrav (pstr, size, i,  "info", "??????-????<br>06:30-21:30 "); json_addstr2 (pstr, size, i,  ",");
+	json_addstrav (pstr, size, i,  "distance", " 1"); json_addstr2 (pstr, size, i,  ",");
+	json_addstr2 (pstr, size, i,  "},");
+	json_addstr2 (pstr, size, i,  "{");
+	json_addstrav (pstr, size, i,  "name", " 19?"); json_addstr2 (pstr, size, i,  ",");
+	json_addstrav (pstr, size, i,  "info", "??????-????<br>06:30-21:30 ");json_addstr2 (pstr, size, i,  ",");
+	json_addstrav (pstr, size, i,  "distance", " 1"); json_addstr2 (pstr, size, i,  ",");
+	json_addstr2 (pstr, size, i,  "},");
+	json_addstr2 (pstr, size, i,  "{");
+	json_addstrav (pstr, size, i,  "name", " 19?"); json_addstr2 (pstr, size, i,  ",");
+	json_addstrav (pstr, size, i,  "info", "??????-????<br>06:30-21:30 ");json_addstr2 (pstr, size, i,  ",");
+	json_addstrav (pstr, size, i,  "distance", " 1"); json_addstr2 (pstr, size, i,  ",");
+	json_addstr2 (pstr, size, i,  "},");
+	json_addstr2 (pstr, size, i,  "{");
+	json_addstrav (pstr, size, i,  "name", " 19?"); json_addstr2 (pstr, size, i,  ",");
+	json_addstrav (pstr, size, i,  "info", "??????-????<br>06:30-21:30 "); json_addstr2 (pstr, size, i,  ",");
+	json_addstrav (pstr, size, i,  "distance", " 1"); json_addstr2 (pstr, size, i,  ",");
+	json_addstr2 (pstr, size, i,  "},");
+	json_addstr2 (pstr, size, i,  "],");
+	
+	json_addstrav2(pstr, size, i,  "sta_active", "true");
+	json_addstr2 (pstr, size, i,  "}]");
+	return 1;
+}
+PRIVATE int get_test_ride_info(char *start, char *end , char *pstr, int size){
+	return 0;
+}
 

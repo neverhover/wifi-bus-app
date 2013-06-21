@@ -125,8 +125,8 @@ MAIN(goahead, int argc, char **argv, char **envp)
         }
         wfree(endpoints);
     }
-    test();
-    printf("custom esp\n");
+    web_func_init();
+    printf("custom app done\n");
 #if BIT_ROM && UNUSED
     /*
         If not using a route/auth config files, then manually create the routes like this:
