@@ -1,0 +1,335 @@
+<div data-role="page" id="index_bus" data-title="实时公交 成都市">
+	<div data-role="header" data-position="fixed">
+		<a href="/index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade">返回</a>
+		<h1>实时公交··成都市</h1>
+		<div data-role="navbar" >
+		    <ul ms-controller="mod_bus_search" ms-each-li="rows">
+		        <li>
+		        	<a href="#" ms-class-ui-btn-active="li.active" data-theme="c" ms-data-bus-type-idx="$index" ms-data-bus-type="li.ids" ms-click="li_click"><br>{{li.name}}</a>
+		        </li>
+		    </ul>
+		</div><!-- /navbar -->
+	</div>
+
+	<div data-role="content">
+		<div class="bus_form">
+			<form ms-controller="mod_bus_search" id="bus_search_form">
+				<div ms-visible="rows[0].active">
+					<input type="number" name="bus_line" ms-model="line" ms-bind-line="search_bind" placeholder="请输入线路名称,如: 92" >
+					
+						<ul id="search_line" data-role="listview" data-inset="true" ms-each-sline="search_line_vec" class="ui-icon-alt">
+							<li ms-data-bus-line-name="sline.line_name" ms-click="search_li_click" >
+									<a>{{sline.line_name}}
+									{{sline.line_out_sta}}</a>
+					        		
+							</li>
+						</ul>
+					
+				</div>
+
+				<div ms-visible="rows[1].active">
+					<input type="text" name="bus_station"  ms-model="station" ms-bind-station="search_bind" placeholder="请输入站点名称">
+					<ul id="search_sta" data-role="listview" data-inset="true"  ms-each-sline="search_sta_vec" class="ui-icon-alt">
+						<li ms-data-bus-sta-name="sline.sta_name" ms-click="search_li_click" >
+								<a>{{sline.sta_name}}</a>
+						</li>
+					</ul>
+				</div>
+
+				<div ms-visible="rows[2].active">
+					<input type="text" name="bus_start_point" id="bus_start_point" placeholder="请输入起点" ms-model="s_point" >
+					<input type="text" name="bus_end_point" id="bus_end_point" placeholder="请输入终点" ms-model="e_point">
+					<a href="#" data-role="button" data-icon="refresh" data-iconpos="right" data-mini="true" data-theme="e" ms-click="ride_switch">切换</a>
+				</div>
+				<input type="hidden" name="search_type" ms-model="search_type">
+				<a href="bus_dialog.html" data-role="button" data-inline="true" data-rel="dialog" data-transition="slidefade" >Open dialog</a>
+				<a id="search_btn" href="bus_line.html" data-role="button" data-inline="true" data-transition="slidefade" >查询</a>
+				<input type="button" value="查询"  data-theme="b" ms-click="bus_commit">
+			</form>
+		</div>
+	</div>
+
+
+	<div data-role="footer" data-position="fixed">
+		<h4>Page Footer</h4>
+	</div>
+
+	<script type="text/javascript">
+		// $(document).ready(function(){
+		// 	console.log("heloo");
+		// });
+		// ( function( $, undefined ) {
+		//     $( document ).bind( "pageinit", function( e ) {
+		//         $( "#prepend, #append", e.target ).on( "click", function( e ) {
+		//            console.log("click");
+		//         });
+		//         console.log("init");
+		//     });
+		//     console.log("outer");
+		// })( jQuery );
+		
+		/*
+		 * 查找到的数据会保存到	window.bus_data_arr.last_search = vm.search_type;
+								window.bus_data_arr.line_info = msg;
+		 * 利用原理为jquery mobile打开的页面在一个DOM内,同样可以利用HTML5的离线存储功能
+		 *
+		 */
+		avalon.ready(function() {
+			if(window.bus_data_arr== null || window.bus_data_arr == undefined){
+				window.bus_data_arr={};
+			}
+			$( "#autocomplete" ).on( "listviewbeforefilter", function ( e, data ) {
+				var $ul = $( this ),
+					$input = $( data.input ),
+					value = $input.val(),
+					html = "";
+				$ul.html( "" );
+				if ( value ) {
+					$ul.html( "<li><div class='ui-loader'><span class='ui-icon ui-icon-loading'></span></div></li>" );
+					$ul.listview( "refresh" );
+					$.ajax({
+						type: 'POST',
+						//url: "/test_data/"+json_url,
+						url:"/action/bus_base",
+						data:{"search_type":"type_line","fuzzy":"1","bus_line":value},
+						cache: false
+						// success:function(msg){
+						// 	//$1.log(msg);
+						// 	msg = eval("(" + msg + ")");
+						// 	if(msg.length ==0){
+						// 		alert("未找到");
+						// 		$1.log(msg);
+						// 	}else{
+						// 		// window.bus_data_arr.last_search = vm.search_type;
+						// 		// window.bus_data_arr.line_info = msg;
+						// 		// $1.log(msg[0].line_up);
+						// 		// $('#search_btn').attr("href",page_url);
+						// 		// $('#search_btn').trigger('click');
+						// 	}
+						// }
+					})
+					.then( function ( response ) {
+						$1.log("ok then");
+						$1.log(response);
+						response = eval("(" + response + ")");
+						// for(idx=0;idx<response.length;idx++){
+						// 	$1.log(response[idx]);
+						// 	html += "<li>" + response[idx] + "</li>";
+						// }
+						outer_search = response;
+						// $.each( response, function ( idx, obj ) {
+						// 	$1.log(obj);
+						// 	html += "<li><a href='#' ms-click='search_li_click'>" + obj.line_name + "<br>" + obj.line_out_sta + "</a></li>";
+						// });
+						$ul.html( html );
+						$ul.listview( "refresh" );
+						$ul.trigger( "updatelayout");
+						$1.log("ok then2");
+					});
+				}
+			});
+			//VM定义
+			var outer_search = null;
+		    avalon.define("mod_bus_search", function(vm) {
+		       vm.rows=[
+		       	{name:"线路查询",ids:"type_line",active:false},
+		       	{name:"站点查询",ids:"type_sta",active:true},
+		       	{name:"换乘方案",ids:"type_ride",active:false},
+		       ];
+		       vm.search_line_vec=vm.search_sta_vec=[];
+		       vm.search_type = vm.rows[1].ids;
+		       vm.s_point = vm.e_point = vm.line = vm.station = "";
+		       //切换active,并修改查询类型
+		       vm.li_click = function(){
+		       		var row_id = $1(this).data("bus-type-idx");
+		       		//$1.log($1(this).data("bus-type-idx"))
+		       		//rows[row_id].active=true;
+		       		var count = 0;
+		       		vm.rows.forEach(function(row){
+		       			//$1.log(row);
+		       			if(count == row_id){
+		       				row.active= true;
+		       				vm.search_type = row.ids;
+		       			}else{
+		       				row.active = false;
+		       			}
+		       			count++;
+		       		});
+		       }
+		       //监听线路查询的值变化
+		       vm.search_bind = function(new_v, old_v){
+		       		$1.log(new_v+" "+old_v);
+		       		$1.log($(this));
+		       		var data_obj = "",init_vec=null;
+		       		switch(vm.search_type){
+		       			case "type_line":
+		       				$ul=$("#search_line");
+		       				data_obj = {"search_type":vm.search_type,"fuzzy":"1","bus_line":vm.line};
+		       				vm.search_line_vec;
+		       				break;
+		       			case "type_sta":
+		       				$ul=$("#search_sta");
+		       				data_obj = {"search_type":vm.search_type,"fuzzy":"1","bus_station":vm.station};
+		       				init_vec = vm.search_sta_vec;
+		       				break;
+		       			case "type_ride":
+		       				json_url = "type_ride.json";
+		       				page_url = "type_ride.html";
+		       				break;
+		       		}
+		       		
+		       		if(new_v && (new_v != old_v)){
+		       			$ul.listview( "refresh" );
+						$.ajax({
+							type: 'POST',
+							url:"/action/bus_base",
+							data: data_obj,
+							cache: false
+						})
+						.then( function ( response ) {
+							//查询完成后去初始化listview
+							//$1.log("ok then");
+							//$1.log(response);
+							response = eval("(" + response + ")");
+							
+							switch(vm.search_type){
+				       			case "type_line":
+				       				vm.search_line_vec = response;
+				       				break;
+				       			case "type_sta":
+				       				vm.search_sta_vec = response;
+				       				break;
+				       			case "type_ride":
+				       				break;
+				       		}
+
+							$ul.listview( "refresh" );
+							$ul.trigger( "updatelayout");
+							//$1.log("ok then88888");
+						});
+		       		}else{
+		       			switch(vm.search_type){
+				       			case "type_line":
+				       				vm.search_line_vec = [];
+				       				break;
+				       			case "type_sta":
+				       				vm.search_sta_vec = [];
+				       				break;
+				       			case "type_ride":
+				       				break;
+				       	}
+		       			//$1.log("ok then666666");
+		       			$ul.listview( "refresh" );
+						$ul.trigger( "updatelayout");
+		       		}
+		       };
+		    //    vm.$watch("line1111",function(new_v,old_v){
+		    //    		$1.log(new_v+" "+old_v);
+		    //    		$ul=$("#search_line");
+		    //    		if(new_v && (new_v != old_v)){
+		    //    			$ul.listview( "refresh" );
+						// $.ajax({
+						// 	type: 'POST',
+						// 	url:"/action/bus_base",
+						// 	data:{"search_type":"type_line","fuzzy":"1","bus_line":vm.line},
+						// 	cache: false
+						// })
+						// .then( function ( response ) {
+						// 	$1.log("ok then");
+						// 	$1.log(response);
+						// 	response = eval("(" + response + ")");
+							
+						// 	vm.search_line_vec = response;
+							
+						// 	$ul.listview( "refresh" );
+						// 	$ul.trigger( "updatelayout");
+						// 	$1.log("ok then2");
+						// });
+		    //    		}else{
+		    //    			vm.search_line_vec = [];
+		    //    			$1.log("ok then3");
+		    //    			$ul.listview( "refresh" );
+						// $ul.trigger( "updatelayout");
+		    //    		}
+		    //    });
+		       //点击搜索li的事件
+		       vm.search_li_click = function(){
+		       		switch(vm.search_type){
+		       			case "type_line":
+		       				vm.line = $1(this).data("bus-line-name");
+		       				break;
+		       			case "type_sta":
+		       				vm.station = $1(this).data("bus-sta-name");
+		       				break;
+		       			case "type_ride":
+		       				json_url = "type_ride.json";
+		       				page_url = "type_ride.html";
+		       				break;
+		       		}
+		       		vm.bus_commit();
+		       }
+		       //换乘切换事件
+		       vm.ride_switch = function(){
+		       		var tmp = vm.s_point;
+		       		vm.s_point = vm.e_point;
+		       		vm.e_point = tmp;
+		       }
+		       vm.bus_commit = function(){
+		       		$1.log(vm.search_type);
+		       		var json_url= page_url="";
+		       		switch(vm.search_type){
+		       			case "type_line":
+		       				json_url = "type_line.json";
+		       				page_url = "bus_line.html";
+		       				break;
+		       			case "type_sta":
+		       				json_url = "type_sta.json";
+		       				page_url = "bus_sta.html";
+		       				break;
+		       			case "type_ride":
+		       				json_url = "type_ride.json";
+		       				page_url = "type_ride.html";
+		       				break;
+		       		}
+		       		$.ajax({
+		       			type: 'POST',
+						//url: "/test_data/"+json_url,
+						url:"/action/bus_base",
+						data:$('#bus_search_form').serialize(),
+						cache: false,
+						beforeSend:function(){
+							$.mobile.showPageLoadingMsg();
+						},
+						success:function(msg){
+							$1.log(msg);
+							msg = eval("(" + msg + ")");
+							if(msg.length ==0){
+								alert("未找到");
+								$1.log(msg);
+							}else{
+								window.bus_data_arr.last_search = vm.search_type;
+								window.bus_data_arr.line_info = msg;
+								$1.log(msg[0].line_up);
+								$('#search_btn').attr("href",page_url);
+								$('#search_btn').trigger('click');
+							}
+						},
+						complete:function(){
+							// Hide loading message
+							$.mobile.hidePageLoadingMsg();
+						}
+		       		});
+		       		return false;
+		       }
+		      $1.log(vm.rows);
+		    });
+		    avalon.scan();
+		})
+
+		 $1.require("lang",function(){
+                $1.log($+"")//[object jQuery]
+                $1.log("nihao");
+         })
+
+	</script>
+</div>

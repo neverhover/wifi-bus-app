@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include "sqlite3.h"
+//#include "gaiageo.h"
+//#include "spatialite.h"
 
-
+#define SPATIALITE	0
 
  static int callback(void *NotUsed, int argc, char **argv, char **azColName){
  int i;
@@ -63,9 +65,22 @@ static void db_search(sqlite3 *db, char * search_name){
     }
 #endif
 
+#if SPATIALITE
+	void *cache;
+	cache = spatialite_alloc_connection();
+    	spatialite_init_ex(db , cache, 0);
+
+
+/* showing the SQLite version */
+    printf ("SQLite version: %s\n", sqlite3_libversion());
+/* showing the SpatiaLite version */
+    printf ("SpatiaLite version: %d\n", spatialite_version());
+    printf ("\n\n");
+#endif
+
 	//使用被wrap的原始接口
 	rc = sqlite3_prepare(db, argv[2], strlen(argv[2]), &pStmt, NULL);
-	
+	printf("rc =%d\n", rc);
 	if(rc != SQLITE_OK){
 		fprintf(stderr, "SQL error1: %s\n", zErrMsg);
 		sqlite3_free(zErrMsg);

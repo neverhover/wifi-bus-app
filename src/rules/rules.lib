@@ -1,0 +1,13 @@
+
+default: $(OBJ_DIR) $(OBJS) create_lib $(SUBDIRS)
+
+LIBOBJS = $(foreach file, $(OBJS), $(OBJ_DIR)/$(file))
+
+AR_OBJS = $(filter-out $(ARCH_LIST),$(OBJS))
+	
+create_lib:
+ifneq ($(AR_OBJS),)
+	echo $(LIB_NAME)
+	$(AR) crus $(LIB_DIR)/$(LIB_NAME) $(filter-out $(ARCH_LIST),$(OBJS))
+endif
+

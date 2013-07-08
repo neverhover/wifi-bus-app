@@ -1,7 +1,7 @@
 #include "web_app_api.h"
 #include "rq_head.h"
 #include "sys_library.h"
-
+#include "bus_utils.h"
 
 #define BUS_BUFF_SIZE 1024* 4
 
@@ -113,6 +113,12 @@ PRIVATE int process_bus_ride_req(Webs *wp){
 
 
 PRIVATE int get_test_line_info(char *name , char *pstr, int size){
+	/* 根据name 找到对应的线路信息 */
+	/* 根据线路ID找到OR视图的站点信息,获取2个方向的信息 */
+	int line_id = 0;
+
+	
+	
 	int i = 0;
 	json_addstr2 (pstr, size, i,  "[{");
 	json_addstrav (pstr, size, i,  "line_name", name); json_addstr2 (pstr, size, i,  ",");

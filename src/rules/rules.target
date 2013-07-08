@@ -1,0 +1,33 @@
+	
+$(OBJ_DIR):
+	-mkdir $(ARCH_NAME)
+	-mkdir $(OBJ_DIR)
+	-mkdir $(ARCH_NAME)/exe
+	-mkdir $(ARCH_NAME)/a
+
+clean:
+	-ar -d $(LIB_DIR)/$(LIB_NAME) $(patsubst $(OBJ_DIR)/%,%,$(OBJS))
+	-rm $(OBJS)
+ifneq ($(TARGET_NAME),)
+	-rm $(TARGET_DIR)/$(TARGET_NAME)
+endif
+
+rclean:
+	make clean
+ifneq ($(SUBDIRS),)	
+	make $(SUBDIRS) TARGET=rclean
+endif
+
+ifneq ($(SUBDIRS),)
+$(SUBDIRS)::
+	make -C $@ $(TARGET)
+endif
+
+$(OBJ_DIR)/%.o : $(SRC_BASE)/%.c
+	$(CC) $(CFLAGS) $(CFLAGS_$(<:.c=.o)) $(IFLAGS) $(IFLAGS_$(<:.c=.o)) -o$@ $<
+
+#only link stage
+ifneq ($(TARGET_NAME),)
+$(LIB_DIR)/$(LIB_NAME):
+	$(AR) cru $(LIB_DIR)/$(LIB_NAME)
+endif
