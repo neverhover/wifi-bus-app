@@ -90,7 +90,7 @@ int db_v_line_sta_info_findby_sta_name_fuzzy(char *name, v_line_sta_info_t **bus
 }
 
 
-/* 根据 条件 从 线路站点视图 查找数据 */
+/* 根据 条件 从 线路站点视图 查找数据,且根据站点顺序来排序 */
 int db_v_line_sta_info_findby_condition(v_line_sta_info_t *cond, v_line_sta_info_t **bus_line_info, int load, int fuzzy){
 	char sub_str[SQL_LEN]; 
 	int index = 0;
@@ -107,7 +107,7 @@ int db_v_line_sta_info_findby_condition(v_line_sta_info_t *cond, v_line_sta_info
 	if( cond->line_type_id >0){
 		CONSTRUCT_WHERE_STR_BY_INT(sub_str, SQL_LEN, index, "line_type", cond->line_type_id, fuzzy);
 	}
-
+	snprintf (sub_str + index, SQL_LEN - index, "ORDER BY seq");
 	return db_v_line_sta_info_find(bus_line_info, load, sub_str);
 }
 
@@ -171,7 +171,7 @@ b.st_id = a.sta_id AND b.st_name = a.sta_name
 	/* 使用方案2,从视图中查找 */
 	snprintf(buf, buf_size, " a inner join  \
 	 (SELECT distinct(st_name),st_id FROM  %s WHERE st_name LIKE '%%%s%%' group by st_name) b\
-	 ON b.st_id = a.sta_id",BUS_STATION_TABLE_NAME, name);
+	 ON b.st_id = a.sta_id group by sta_name",BUS_STATION_TABLE_NAME, name);
 	return OK;
 }
 
@@ -213,7 +213,7 @@ static int db_bus_line_info_find(bus_line_info_t **bus_line_info, int load, char
 
 	sqlite3 *ptr_db = NULL;
 	sqlite3_stmt *pStmt = NULL;
-	int32_t ret, row_count = 0,col_count = 0;
+	int32_t ret, row_count = 0,real_row_count = 0,col_count=0;
 	bus_line_info_t *ptr_bus_line_info_t = NULL;
 	STRACE();
 	if(NULL == search_str){
@@ -254,7 +254,7 @@ static int db_bus_line_info_find(bus_line_info_t **bus_line_info, int load, char
 	}
 	col_count = sqlite3_column_count(pStmt);
 	ptr_bus_line_info_t = *bus_line_info;
-
+#if 0
 	int i = 0;
 	//打印col名称
 	while(i < col_count){
@@ -266,10 +266,11 @@ static int db_bus_line_info_find(bus_line_info_t **bus_line_info, int load, char
 		i++;
 	}
 	DB_STRACE("return rows %d \n", row_count);
+#endif
 	while(ret == SQLITE_ROW){
 #if 1
 		
-		
+		real_row_count++;
 		ptr_bus_line_info_t->id =  sqlite3_column_int(pStmt, 0);
 		STR_S_CP(ptr_bus_line_info_t->name,sqlite3_column_text(pStmt, 1));
 		ptr_bus_line_info_t->line_type_id= sqlite3_column_int(pStmt, 2);
@@ -299,6 +300,9 @@ static int db_bus_line_info_find(bus_line_info_t **bus_line_info, int load, char
 	}
 	
 	sqlite3_finalize(pStmt);
+	if(row_count > real_row_count){
+		row_count = real_row_count;
+	}
 	return row_count;
 }
 
@@ -309,7 +313,7 @@ static int db_v_line_sta_info_find(v_line_sta_info_t ** info, int load, char *se
 
 	sqlite3 *ptr_db = NULL;
 	sqlite3_stmt *pStmt = NULL;
-	int32_t ret, row_count = 0,col_count = 0;
+	int32_t ret, row_count = 0, real_row_count = 0;
 	v_line_sta_info_t *ptr_v_line_sta_info_find_t = NULL;
 	
 	if(NULL == search_str){
@@ -343,12 +347,12 @@ static int db_v_line_sta_info_find(v_line_sta_info_t ** info, int load, char *se
 		sqlite3_finalize(pStmt);
 		return ERROR;
 	}
-	col_count = sqlite3_column_count(pStmt);
+	//col_count = sqlite3_column_count(pStmt);
 	ptr_v_line_sta_info_find_t = *info;
 	while(ret == SQLITE_ROW){
 #if 1
 	
-
+		real_row_count++;
 		ptr_v_line_sta_info_find_t->id =  sqlite3_column_int(pStmt, 0);
 		STR_S_CP(ptr_v_line_sta_info_find_t->line_name,sqlite3_column_text(pStmt, 1));
 		ptr_v_line_sta_info_find_t->line_type_id= sqlite3_column_int(pStmt, 2);
@@ -377,6 +381,9 @@ static int db_v_line_sta_info_find(v_line_sta_info_t ** info, int load, char *se
 	}
 	
 	sqlite3_finalize(pStmt);
+	if(row_count > real_row_count){
+		row_count = real_row_count;
+	}
 	return row_count;
 }
 

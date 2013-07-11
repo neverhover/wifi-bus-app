@@ -76,13 +76,14 @@ PUBLIC void action_bus_base_process(Webs *wp, char *path, char *query){
 	}else{
 		process_web_write_response(wp, HTTP_CODE_OK, "[]" , 3);
 	}
-	
+#if 0	
 	printf( "{ \"bus_line\":\"%s\" , \
 		\"bus_station\":\"%s\", \
 		\"search_type\":\"%s\", \
 		\"bus_start_point\":\"%s\", \
 		\"bus_end_point\":\"%s\" }\n", 
 		bus_line, bus_station, search_type, bus_start_point, bus_end_point);
+#endif
 }
 
 
@@ -252,9 +253,13 @@ PRIVATE int get_line_info_from_db(char *name , char *pstr, int size){
 		printf("your line name is %s\n", name);
 		//获取线路信息
 		if( (ret = db_bus_line_info_findby_line_name(name, &info, 1, SQL_SEARCH_EQUAL)) <=0 ){
-			WEB_STRACE("db error return %d",ret);
-			return RET_ERROR;
+			//使用模糊查询
+			if( (ret = db_bus_line_info_findby_line_name(name, &info, 1, SQL_SEARCH_FUZZY)) <=0 ){
+				WEB_STRACE("db error return %d",ret);
+				return RET_ERROR;
+			}
 		}
+		
 		
 		cond.id= info->id;
 		cond.kind_id = KIND_OUTBOUND;
@@ -298,10 +303,10 @@ PRIVATE int get_line_info_from_db(char *name , char *pstr, int size){
 		json_object_object_add(new_obj, "line_active", json_object_new_boolean(TRUE));
 		
 	
-		for ((out_tmp) = (out_all); (ret_out) > 0; (ret_out) --, (out_tmp) ++){
+		for (out_tmp = out_all; ret_out > 0; ret_out --, out_tmp ++){
 			json_object_array_add( sta_out,json_object_new_string(out_tmp->sta_name));
 		}
-		for ((in_tmp) = (in_all); (ret_in) > 0; (ret_in) --, (in_tmp) ++){
+		for (in_tmp = in_all; ret_in > 0; ret_in --, in_tmp ++){
 			json_object_array_add( sta_in,json_object_new_string(in_tmp->sta_name));
 		}
 		
@@ -352,11 +357,11 @@ PRIVATE int get_line_info_fuzzy_from_db(char *name , char *pstr, int size){
 		
 	printf("Data:  %s\n",json_object_to_json_string(line_obj_arr));
 	snprintf(pstr,size,"%s",json_object_to_json_string(line_obj_arr));
-	WEB_STRACE();
+	
 	json_object_put(line_obj_arr);
-	WEB_STRACE();
+	
 	db_free(info);
-	WEB_STRACE();
+	
 	return i;
 }
 
@@ -389,13 +394,13 @@ PRIVATE int get_sta_info_from_db(char *name , char *pstr, int size){
 	json_object_object_add(new_obj, "sta_active", json_object_new_boolean(TRUE));
 	
 
-	for ((tmp_info) = (info); (ret) > 0; (ret) --, (tmp_info) ++){
+	for (tmp_info = info; ret > 0; ret --, tmp_info ++){
 		sta_obj = json_object_new_object();
-		json_object_object_add(sta_obj, "name", json_object_new_string(info->name));
+		json_object_object_add(sta_obj, "name", json_object_new_string(tmp_info->name));
 		WEB_STRACE();
-		json_object_object_add(sta_obj, "info", json_object_new_string(info->out_sta));
+		json_object_object_add(sta_obj, "info", json_object_new_string(tmp_info->out_sta));
 		WEB_STRACE();
-		json_object_object_add(sta_obj, "time", json_object_new_string(info->outbound));
+		json_object_object_add(sta_obj, "time", json_object_new_string(tmp_info->outbound));
 		WEB_STRACE();
 		json_object_object_add(sta_obj, "distance", json_object_new_int(1));
 		json_object_array_add(sta_line_arr,sta_obj);
@@ -440,11 +445,11 @@ PRIVATE int get_sta_info_fuzzy_from_db(char *name , char *pstr, int size){
 		
 	printf("Data:  %s\n",json_object_to_json_string(line_obj_arr));
 	snprintf(pstr,size,"%s",json_object_to_json_string(line_obj_arr));
-	WEB_STRACE();
+
 	json_object_put(line_obj_arr);
-	WEB_STRACE();
+	
 	db_free(info);
-	WEB_STRACE();
+	
 	return i;
 }
 
