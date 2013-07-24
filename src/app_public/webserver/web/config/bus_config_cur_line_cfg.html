@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+	<meta charset="utf-8">
+	<title>配置当前线路</title> 
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" hrfe="/css/jquery.mobile.theme-1.3.1.min.css"/>
+	<link rel="stylesheet" href="/css/jquery.mobile-1.3.1.min.css" />
+	<link rel="stylesheet" href="/css/bus_style.css" type="text/css" />
+	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+	
+	<script src="/js/jquery-1.10.1.min.js"></script>
+	<script src="/js/jquery.mobile-1.3.1.min.js"></script>
+
+	 <!-- <script src="js/mass_min.js"></script> -->
+	<script src="/js/mass_merge.js"></script>
+	<!-- MVVM框架,用于后续的list -->
+	<script src="/js/avalon_min.js"></script>
+	<script type="text/javascript">
+		( function( $, undefined ) {
+		    $( document ).bind( "pagechange", function( e ) {
+		    	var pre_id=$.mobile.urlHistory.previousIndex;
+		    	var act_id=$.mobile.urlHistory.activeIndex;
+                if ( (pre_id >0 ) && (pre_id > act_id)) {
+                	//得到完整的URL
+                    var dataUrl = $.mobile.urlHistory.stack[pre_id].pageUrl;
+                    var forwordPage=$.mobile.pageContainer.children(":jqmData(url='" + dataUrl + "')");
+                    if(forwordPage){
+                    	$1.log("we did remove");
+                        forwordPage.remove();
+                    }
+                }
+                $.mobile.urlHistory.clearForward();
+		    });
+		})( jQuery );
+	</script>
+</head>
+
+<body> 
+
+<div data-role="page" id="id_config_cur_line" ms-controller="config_cur_line">
+	<div data-role="header" data-position="fixed">
+		<a href="/config/" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade" data-rel="back">返回</a>
+		<h1 ms-html="title"></h1>
+		
+	</div>
+
+	<div data-role="content" >
+			<div class="bus_form">
+			<form id="bus_config_cur_line">
+				<label for="line_direction" class="select">线路名称</label>
+				<input  name="line_name" ms-model="set_name"  placeholder="请输入线路名称,如: 92" size="12">
+				<label for="line_direction"  class="select">行车方向选择</label>
+				<select name="line_direction" id="line_direction" data-native-menu="false">
+				    <option>行车方向选择</option>
+				    <option value="1">去程</option>
+				    <option value="2">回程</option>
+				    <option value="3">环线</option>
+				</select>
+				<label for="cur_info">线路:</label>
+				<span ms-html="set_name"></span>&nbsp;&nbsp;&nbsp;<span ms-html="dir_info"></span>
+				<br>
+
+				<label for="in_sta">回程:</label>
+				<span ms-html="in_sta"></span>
+				<br>
+
+				<label for="out_sta">去程:</label>
+				<span ms-html="out_sta"></span>
+				
+				<input type="hidden" id="cur_info" name="cur_info" ms-model="cur_info" style="display:none">
+				<input type="hidden" id="set_dir" ms-model="set_dir" style="display:none">
+				<input type="button" value="修改"  data-theme="b" ms-click="config_commit">
+				<input type="button" value="查看"  data-theme="b" ms-click="show_cur_info" id="show_info">
+			</form>
+	</div>
+
+	<div data-role="footer" data-position="fixed">
+		<h4>Page Footer</h4>
+	</div>
+
+	<script type="text/javascript">
+		
+		avalon.ready(function() {
+			 avalon.define("config_cur_line", function(vm) {
+			 		vm.title="配置当前线路";
+			 		vm.set_name="";
+			 		vm.set_dir="";
+			 		vm.cur_info=[];
+			 		vm.line_company=vm.out_sta=vm.in_sta=vm.dir_info="";
+			 		vm.config_commit = function(){
+			      		//查询某一个站点的信息
+			      		$(this).attr("href","/bus/bus_sta.html?name="+ $(this).html());
+			      		$.ajax({
+			       			type: 'GET',
+							url:"/action/bus_config",
+							data: {"line_name":vm.set_name,"line_direction":$("#set_dir").val(),"rq_type":"cur_line","act":"set"},
+							cache: false,
+							beforeSend:function(){
+								$.mobile.showPageLoadingMsg();
+							},
+							success:function(msg){
+								vm.change_cur_info();
+							},
+							complete:function(){
+								// Hide loading message
+								$.mobile.hidePageLoadingMsg();
+							}
+			       		});
+			      		
+			      		return false;
+		      		}
+		      		//修改当前的线路信息
+		      		vm.change_cur_info = function(){
+		      			$1.log("change cur_info");
+		      			$.ajax({
+			       			type: 'GET',
+							url:"/action/bus_config",
+							data: {"rq_type":"cur_line","act":"get"},
+							cache: false,
+							beforeSend:function(){
+								$.mobile.showPageLoadingMsg();
+							},
+							success:function(msg){
+							
+								$1.log(msg+"1");
+								msg = eval("(" + msg + ")");
+								if(msg.length ==0){
+									$1.log(msg+"2");
+								}else{
+									vm.cur_info = msg;
+									vm.change_vm();
+								}
+							},
+							complete:function(){
+								// Hide loading message
+								$.mobile.hidePageLoadingMsg();
+							}
+			       		});
+		      		}
+		      		vm.show_cur_info = function(){
+		      			vm.change_cur_info();
+		      		}
+		      		vm.change_vm = function(){
+		      			vm.line_company = vm.cur_info[0].line_company;
+		      			vm.in_sta = vm.cur_info[0].in_sta;
+		      			vm.out_sta = vm.cur_info[0].out_sta;
+		      			vm.set_name = vm.cur_info[0].line_name;
+		      			switch(vm.cur_info[0].cur_dec){
+		      				case 1:
+		      					vm.dir_info = "去程";
+		      					break;
+		      				case 2:
+		      					vm.dir_info = "回程";
+		      					break;
+		      				case 3:
+		      					vm.dir_info = "环线";
+		      					break;
+		      			}
+		      		}
+		      		
+
+			 });
+			  avalon.scan();
+			  $('#show_info').trigger("click");
+		});
+		 $1.require("lang",function(){
+                // $1.log($+"")//[object jQuery]
+                // $1.log("nihao");
+         });
+         $(document).ready(function($) {
+         	$("#line_direction").change(function(){
+         		$("#set_dir").val($(this).val());
+         		console.log($("#set_dir").val());
+         	});
+         });
+
+	</script>
+</div>
+
+</body>
+</html>
+

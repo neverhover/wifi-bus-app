@@ -22,7 +22,7 @@
 
 /* 视图查找 */
 static int db_bus_line_info_find(bus_line_info_t **bus_line_info, int load, char *search_str);
-static int db_v_line_sta_info_find(v_line_sta_info_t **info, int load, char *search_str);
+static int db_v_line_sta_info_find(v_line_sta_info_t **info, int load, char *search_str, char *ret_sql_str);
 static int construct_v_line_sta_info_sql_find_line_by_sta_name(char *buf, int buf_size,char *name, int fuzzy);
 static int construct_bus_line_info_fuzzy_sql_find_line_by_line_name(char *buf, int buf_size,char *name);
 static int construct_station_fuzzy_sql_find_sta_by_sta_name(char *buf, int buf_size,char *name);
@@ -70,23 +70,27 @@ int db_bus_line_info_findby_sta_name(char *name, bus_line_info_t **bus_line_info
 /* 根据 线路ID 从 线路站点视图 查找数据 */
 int db_v_line_sta_info_findby_line_id(int id, v_line_sta_info_t **bus_line_info, int load, int fuzzy){
 	CONSTRUCT_SQL_WHERE_SUB_BY_INT(search, "id", id, fuzzy);
-	return db_v_line_sta_info_find(bus_line_info, load, search);
+	return db_v_line_sta_info_find(bus_line_info, load, search, NULL);
 }
 
 /* 根据 站点名 从 线路站点视图 查找数据 */
 int db_v_line_sta_info_findby_sta_name(char *name, v_line_sta_info_t **bus_line_info, int load, int fuzzy){
 	CONSTRUCT_SQL_WHERE_SUB_BY_STR(search, "sta_name", name, fuzzy);
-	return db_v_line_sta_info_find(bus_line_info, load, search);
+	return db_v_line_sta_info_find(bus_line_info, load, search, NULL);
 }
 
 /* 根据站点名模糊查询站点的信息,从视图查询 */
 int db_v_line_sta_info_findby_sta_name_fuzzy(char *name, v_line_sta_info_t **bus_line_info, int load){
-	char sub_str[SQL_LEN];
+	char sub_str[SQL_LEN],tmp_str[SQL_LEN];
+	memset(tmp_str, 0, sizeof(tmp_str));
 	if (construct_station_fuzzy_sql_find_sta_by_sta_name(sub_str, SQL_LEN, name) <0){
 		return ERROR;
 	}
-	DB_STRACE("our sql:%s",sub_str);
-	return db_v_line_sta_info_find(bus_line_info, load, sub_str);
+	//DB_STRACE("our sql:%s",sub_str);
+	//这里查询需要做一下处理,因为同时使用了group by 和count 2个函数
+	//实际效果应该是select count(*) from (select count(*) num,sid from person group by sid )
+	snprintf(tmp_str, SQL_LEN, "( SELECT COUNT(1) FROM  %s %s)", BUS_V_LINE_STA_TABLE_NAME, sub_str);
+	return db_v_line_sta_info_find(bus_line_info, load, sub_str, tmp_str);
 }
 
 
@@ -108,7 +112,7 @@ int db_v_line_sta_info_findby_condition(v_line_sta_info_t *cond, v_line_sta_info
 		CONSTRUCT_WHERE_STR_BY_INT(sub_str, SQL_LEN, index, "line_type", cond->line_type_id, fuzzy);
 	}
 	snprintf (sub_str + index, SQL_LEN - index, "ORDER BY seq");
-	return db_v_line_sta_info_find(bus_line_info, load, sub_str);
+	return db_v_line_sta_info_find(bus_line_info, load, sub_str, NULL);
 }
 
 
@@ -199,9 +203,6 @@ b.id = a.id
 	 ON a.id = b.id",BUS_LINE_INFO_TABLE_NAME, name);
 	return OK;
 }
-
-
-
 
 
 #if 0
@@ -300,29 +301,36 @@ static int db_bus_line_info_find(bus_line_info_t **bus_line_info, int load, char
 	}
 	
 	sqlite3_finalize(pStmt);
+	#if 0
 	if(row_count > real_row_count){
 		row_count = real_row_count;
 	}
+	#endif
 	return row_count;
 }
 
 /*
  * @param search_str	传入的SQL语句的部分
+ * @param ret_sql_str	传入自定义的结果条目查询语句
  */
-static int db_v_line_sta_info_find(v_line_sta_info_t ** info, int load, char *search_str){
+static int db_v_line_sta_info_find(v_line_sta_info_t ** info, int load, char *search_str, char *ret_sql_str){
 
 	sqlite3 *ptr_db = NULL;
 	sqlite3_stmt *pStmt = NULL;
 	int32_t ret, row_count = 0, real_row_count = 0;
 	v_line_sta_info_t *ptr_v_line_sta_info_find_t = NULL;
-	
+
 	if(NULL == search_str){
 		return ERROR;
 	}
 	ptr_db = db_get_db_handler();
-
 	//查询 条件查询SQL返回的行数
-	ret  = db_get_search_count(ptr_db, BUS_V_LINE_STA_TABLE_NAME, search_str, &row_count);
+	if(ret_sql_str != NULL){
+		ret =db_get_search_count(ptr_db, ret_sql_str, " " , &row_count);
+	}else{
+		ret  = db_get_search_count(ptr_db, BUS_V_LINE_STA_TABLE_NAME, search_str, &row_count);
+	}
+	
 	if(ret != OK){
 		return ERROR;
 	}
@@ -361,11 +369,10 @@ static int db_v_line_sta_info_find(v_line_sta_info_t ** info, int load, char *se
 		STR_S_CP(ptr_v_line_sta_info_find_t->sta_name, sqlite3_column_text(pStmt, 5));
 		STR_S_CP(ptr_v_line_sta_info_find_t->st_lng , sqlite3_column_text(pStmt, 6));
 		STR_S_CP(ptr_v_line_sta_info_find_t->st_lat,sqlite3_column_text(pStmt, 7));
-		STR_S_CP(ptr_v_line_sta_info_find_t->ticket ,sqlite3_column_text(pStmt, 8));
-		STR_S_CP(ptr_v_line_sta_info_find_t->kind , sqlite3_column_text(pStmt, 9));
-		ptr_v_line_sta_info_find_t->kind_id = sqlite3_column_int(pStmt, 10);
-		ptr_v_line_sta_info_find_t->sta_status = sqlite3_column_int(pStmt, 11);
-		ptr_v_line_sta_info_find_t->seq = sqlite3_column_int(pStmt, 12);
+		STR_S_CP(ptr_v_line_sta_info_find_t->kind , sqlite3_column_text(pStmt, 8));
+		ptr_v_line_sta_info_find_t->kind_id = sqlite3_column_int(pStmt, 9);
+		ptr_v_line_sta_info_find_t->sta_status = sqlite3_column_int(pStmt, 10);
+		ptr_v_line_sta_info_find_t->seq = sqlite3_column_int(pStmt, 11);
 		ptr_v_line_sta_info_find_t++;
 		
 #else
@@ -381,9 +388,12 @@ static int db_v_line_sta_info_find(v_line_sta_info_t ** info, int load, char *se
 	}
 	
 	sqlite3_finalize(pStmt);
+	//不能使用以下的判定方法来进行,因为这样FREE的时候，只有会有部分被free
+	#if 0
 	if(row_count > real_row_count){
 		row_count = real_row_count;
 	}
+	#endif
 	return row_count;
 }
 

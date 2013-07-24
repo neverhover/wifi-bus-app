@@ -69,7 +69,6 @@ typedef struct{
 	char sta_name[64];
 	char st_lng[24];
 	char st_lat[24];
-	char ticket[64];
 	char kind[40];
 	int kind_id;
 	int sta_status;

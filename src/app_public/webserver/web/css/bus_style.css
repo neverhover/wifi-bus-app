@@ -58,6 +58,9 @@
 .bus_line h2 h3 h4{
 	text-align: center;
 }
+.bus_map{
+		height:450px;
+}
 .gallery-entries .gallery-item  a:hover h3, .gallery-entries .gallery-item  a:active h3{
 	text-decoration:underline;
 }
@@ -81,6 +84,9 @@
 		width: 50%;
 		margin-top: 20px;
 		margin: auto;
+	}
+	.bus_map{
+		height:600px;
 	}
 }
 

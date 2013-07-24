@@ -15,10 +15,11 @@ PUBLIC void action_help_process(Webs *wp, char *path, char *query){
 	snprintf(status_str, 8, "%d", HELP_SUCCESS);
 	printf("\n%s ,status_str =%s \n",__FUNCTION__, status_str);
 	
-	process_web_write_response(wp, HTTP_CODE_OK, "status_str" , 8);
-	
+	process_web_write_response(wp, HTTP_CODE_OK, status_str , 8);
+#if 0
 	printf( "{ \"help_type\":\"%s\" , \
 		\"other_infos\":\"%s\",  }", 
 		help_type, other_infos);
+#endif
 }
 

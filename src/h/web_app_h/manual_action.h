@@ -16,6 +16,8 @@ PUBLIC void action_bus_realtime_line_process(Webs *wp, char *path, char *query);
 
 PUBLIC void action_bus_realtime_station_process(Webs *wp, char *path, char *query);
 
+PUBLIC void action_bus_config_process(Webs *wp, char *path, char *query);
+
 /*
  * @Brief help process
  */

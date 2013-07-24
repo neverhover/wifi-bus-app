@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+    <meta charset="utf-8">
+    <title>实时公交</title> 
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" hrfe="/css/jquery.mobile.theme-1.3.1.min.css"/>
+    <link rel="stylesheet" href="/css/jquery.mobile-1.3.1.min.css" />
+    <link rel="stylesheet" href="/css/bus_style.css" type="text/css" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    
+    <style type="text/css">
+    #allmap {width: 100%;height: 100%;overflow: hidden;margin:0;}
+    #l-map{height:100%;width:100%;float:left;border-right:1px solid #bcbcbc;}
+    #r-result{height:100px;width:100px;margin:0; display: none; }
+    </style>
+
+    <script src="/js/jquery-1.10.1.min.js"></script>
+    <script src="/js/jquery.mobile-1.3.1.min.js"></script>
+
+     <!-- <script src="js/mass_min.js"></script> -->
+    <script src="/js/mass_merge.js"></script>
+    <!-- MVVM框架,用于后续的list -->
+    <script src="/js/avalon_min.js"></script>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=1.5&ak=43cfe61da7519c898a6951da09870b36"></script>
+    <script src="/js/convertor.js"></script>
+    <script src="/js/position_cmp.js"></script>
+</head>
+
+<body> 
+
+<div data-role="page" id="index_app">
+    
+    <div data-role="header" data-position="fixed">
+        <a href="/index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade" data-rel="back">返回</a>
+        <h1>公交实时信息 <span class="ui-li-count">成都市</span></h1>
+    </div>
+
+    <div data-role="content" style="position: absolute;width: 100%;height: -webkit-calc(100% - 12px);padding-top:5px;">
+       
+        <div id="l-map"></div>
+       
+        <div id="r-result"></div>
+         <div id="r-result2" style="height:80%;width:80%;float:right;border-right:2px solid #bcbcbc;"></div>
+        <audio src="shuyu.mp3" controls="controls" id="music_obj" style="display:none">浏览器不支持音频播放</audio>
+    </div>
+
+    <div data-role="footer" data-position="fixed">
+        <a href="#leftpanel2" data-icon="bars" data-role="button" data-inline="true" data-mini="true">设置</a>
+        <a href="#" id="cur_position" data-icon="info" data-role="button" data-inline="true" data-mini="true">当前位置</a>
+    </div>
+
+    <!-- leftpanel2  -->
+    <div data-role="panel" id="leftpanel2" data-position="left" data-display="push" data-dismissible="true" data-theme="a">
+            
+        <div class="panel-content">
+            <h3 id="line_name"></h3>
+            <h5 id="line_bgn"></h5>
+            <h5 id="line_end"></h5>
+            <h5 id="line_time"></h5>
+            <label for="remind_status" id="remind_status_label">到站提醒</label>
+            <select name="remind_status" id="remind_status" data-role="slider" data-track-theme="c" data-theme="a">
+                <option value="off" selected>关闭</option>
+                <option value="on">开启</option>
+            </select>
+
+            <label for="sta_remind" id="sta_remind_label" class="select">提醒站点</label>
+            <select name="sta_remind" id="sta_remind" data-native-menu="false">
+             
+            </select>
+            <a href="#demo-links" data-rel="close" data-role="button" data-theme="a" data-icon="delete" data-inline="true" data-mini="true">关闭面板</a>
+        </div><!-- /content wrapper for padding -->
+            
+    </div><!-- /leftpanel2 -->
+
+<script type="text/javascript">
+
+
+//map.centerAndZoom(new BMap.Point(116.404, 39.915), 12);
+var map = new BMap.Map("l-map");            // 创建Map实例
+map.centerAndZoom("成都",15);
+map.enableScrollWheelZoom();;
+
+var busline = null;
+var curr_marker = null;
+var outer_marker=[];
+var cur_point = null;
+var dst_sta = "",
+    dst_index=0,
+    dst_remind_status="off";   //指定的目的站点
+var marker_size = 0,
+    pos=0,
+    timer_num;
+
+var test_able =0,
+    gps_point = null;
+    locate_fun = null;
+
+//设置地图的版权信息
+function add_copyright(){
+    var cr = new BMap.CopyrightControl({anchor: BMAP_ANCHOR_BOTTOM_RIGHT});   //设置版权控件位置
+    map.addControl(cr); //添加版权控件
+
+    var bs = map.getBounds();   //返回地图可视区域
+    cr.addCopyright({id: 1, content: "<a href='#' style='font-size:20px;background:yellow'>成都市XX科技有限公司</a>", bounds: bs});
+}
+//添加地图2D,3D,卫星图控件
+function add_map_type(){
+    map.addControl(new BMap.MapTypeControl({anchor: BMAP_ANCHOR_TOP_RIGHT,mapTypes: [BMAP_NORMAL_MAP,BMAP_HYBRID_MAP]}));     //2D图，卫星图
+    //map.addControl(new BMap.MapTypeControl({anchor: BMAP_ANCHOR_TOP_LEFT}));    //左上角，默认地图控件
+    map.setCurrentCity("成都");   //由于有3D图，需要设置城市哦
+}
+//添加地图缩放控件
+function add_navigation(){
+    map.addControl(new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_LEFT,type: BMAP_NAVIGATION_CONTROL_ZOOM}));  //添加默认缩放平移控件
+    //map.addControl(new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_RIGHT, type: BMAP_NAVIGATION_CONTROL_SMALL}));  //右上角，仅包含平移和缩放按钮
+    //map.addControl(new BMap.NavigationControl({anchor: BMAP_ANCHOR_BOTTOM_LEFT, type: BMAP_NAVIGATION_CONTROL_PAN}));  //左下角，仅包含平移按钮
+    //map.addControl(new BMap.NavigationControl({anchor: BMAP_ANCHOR_BOTTOM_RIGHT, type: BMAP_NAVIGATION_CONTROL_ZOOM}));  //右下角，仅包含缩放按钮
+}
+//添加标尺控件
+function add_scale(){
+    //map.addControl(new BMap.ScaleControl({anchor: BMAP_ANCHOR_TOP_LEFT}));                    // 左上
+    //map.addControl(new BMap.ScaleControl({anchor: BMAP_ANCHOR_TOP_RIGHT}));                    // 右上
+    map.addControl(new BMap.ScaleControl({anchor: BMAP_ANCHOR_BOTTOM_LEFT}));                    // 左下
+    //map.addControl(new BMap.ScaleControl({anchor: BMAP_ANCHOR_BOTTOM_RIGHT}));                    // 右下
+}
+function add_marker(point){
+    var point = new BMap.Point(104.080561, 30.699951);
+    curr_marker = new BMap.Marker(point);
+    map.addOverlay(curr_marker);
+    var label = new BMap.Label("我是百度标注哦",{offset:new BMap.Size(20,-10)});
+    curr_marker.setLabel(label); //添加百度label
+}
+//移动当前的位置
+function move_pos(baidupoint){
+    mu = document.getElementById("music_obj");
+    if(pos >= marker_size && marker_size!=0){
+        alert("到达终点站");
+        window.clearInterval(timer_num);
+        //同时进行声音提醒
+        mu.pause(); 
+        return true;
+    }
+    //这里将获取的GPS坐标转换成百度坐标
+    //var point = outer_marker[pos].getPosition(); //这里是用来做测试的
+    var point = baidupoint;
+    if(curr_marker == null){
+        console.log(point);
+        var myIcon = new BMap.Icon("bus_small.png", new BMap.Size(48,48));
+      
+        curr_marker = new BMap.Marker(point,{icon:myIcon});
+        map.addOverlay(curr_marker);
+        curr_marker.setAnimation(BMAP_ANIMATION_BOUNCE); //跳动的动画
+        //curr_marker.setAnimation(BMAP_ANIMATION_DROP);
+        
+        var label = new BMap.Label("当前的位置",{offset:new BMap.Size(20,-10)});
+        
+        label.setStyle({
+                    borderColor:"black",
+                    color:"#333",
+                    backgroundColor:"yellow",
+                    cursor:"pointer"
+        });
+        curr_marker.setLabel(label); //添加百度label
+       
+    }else{
+        //移动marker
+        curr_marker.setPosition(point);
+    }
+    //map.centerAndZoom(outer_marker[pos].getPosition(), 15); //这里是用来做测试的
+    //map.centerAndZoom(point, 15);
+    // pos++;
+    // //移动当前位置，判断是否到达指定的站点
+    // if(pos+3 >= marker_size){
+    //     return true;
+    // }
+    // if(outer_marker[pos+1].jr == dst_sta){
+    //     console.log(pos+" 还有1站就要到达"+ dst_sta);
+    //     console.log("马上就要到站了,请做好准备");
+    // }
+    // else if(outer_marker[pos+3].jr == dst_sta){
+    //     console.log(pos+" 还有3站就要到达"+ dst_sta);
+        
+    //     mu.play(); 
+    // }
+}
+
+function move_center(){
+    if(cur_point != null){
+        map.centerAndZoom(cur_point, 15);
+    }
+}
+//获取公交线路
+function get_cur_line_info(){
+    req_count++;
+    if(req_count >= 10){
+        return false;
+    }
+     $.ajax({
+        type: 'GET',
+        url:"/action/bus_config",
+        data: {"rq_type":"cur_line","act":"get"},
+        cache: false,
+        beforeSend:function(){
+            $.mobile.showPageLoadingMsg();
+        },
+        success:function(msg){
+            msg = eval("(" + msg + ")");
+            if(msg.length ==0){
+               setTimeout(function(){
+                    get_cur_line_info();
+                },1500);
+            }else{
+                set_bus_line(msg);
+                //set_panel_info(msg);
+                var busName= msg[0].line_name;
+                busline.getBusList(busName);
+                busline.enableAutoViewport();
+            }
+           
+        },
+        complete:function(){
+            // Hide loading message
+            $.mobile.hidePageLoadingMsg();
+        }
+    });
+}
+
+var tmp_msg=null,
+    sta_count = 0;
+//设置线路的方向以及绘制marker
+function set_bus_line(msg){
+  busline  = new BMap.BusLineSearch("成都",{
+    renderOptions:{map:map,panel:"r-result"},
+        onGetBusListComplete: function(result){
+           if(result) {
+             var c_count = result.Nm.length;
+             var chose_num = 0;
+             var line_end,line_start;
+             //for中是用来选择行车方向
+             for(c_tmp =0; c_tmp<c_count;c_tmp++){
+                var sp_arr = result.Nm[0].name.split("-");
+                var bgn_sta = sp_arr[0].split("(")[1];
+                var end_sta = sp_arr[1].split(")")[0];
+                if(msg[0].cur_dec == 2){
+                    line_end =  msg[0].in_sta.split("--")[1];
+                    line_start = msg[0].in_sta.split("--")[0];
+                  
+                }else{
+                    line_end =  msg[0].out_sta.split("--")[1];
+                    line_start = msg[0].out_sta.split("--")[0];
+                }
+                console.log(c_tmp + " "+ line_start +"-"+ line_end);
+                console.log(c_tmp + " "+ bgn_sta +"-"+ end_sta);
+                if( (bgn_sta == line_start)|| (end_sta == line_end)){
+                    chose_num =  c_tmp;
+                    break;
+                }
+             }
+            
+             tmp_msg=result;
+             console.log(result);
+             var fstLine = result.getBusListItem(chose_num);//获取第一个公交列表显示到map上
+             busline.getBusLine(fstLine);
+             
+             // add_copyright();
+             // add_map_type();
+             add_navigation();
+             add_scale();
+             locate_fun();
+             //add_marker();
+            // setTimeout(function(){
+            //     //add_marker();
+            //     //每隔一秒获取坐标，并移动marker
+            //     timer_num=self.setInterval("move_pos()",3000);
+            // },1500);
+            //  setTimeout(function(){
+            //     //busline.clearResults();
+            //     //curr_marker.remove();
+            //     //map.clearOverlay(curr_marker);
+            //     //测试用，删除所有的marker
+            //     // outer_marker.forEach(function(item, index) {
+            //     //     item.remove();
+            //     // });
+            //  },5000);
+             
+           }
+        },
+        //设置标记
+        onMarkersSet: function(mark){
+            mark.forEach(function(item, index) {
+                //console.log(item);
+                var tmp_label = null;
+                if(item.jr == undefined){
+                     //tmp_label = new BMap.Label(index+" "+item.jr,{offset:new BMap.Size(15,-10)});
+                     tmp_label = new BMap.Label(index+" "+item.lr,{offset:new BMap.Size(15,-10)});
+                }else{
+                     tmp_label = new BMap.Label(index+" "+item.jr,{offset:new BMap.Size(15,-10)});
+                }
+               
+                item.setLabel(tmp_label); //添加label
+            });
+            //将所有的marker存在外部
+            outer_marker=mark;
+            marker_size = outer_marker.length;
+            set_panel_info(tmp_msg);
+        }
+    });
+}
+
+//设置左边面板的值,同时初始化一次站点计算等
+function set_panel_info(msg){
+    if((msg == null) || (msg.length == 0)){
+        $("#line_bgn,#line_end,#sta_remind_label,#sta_remind,#line_time,#remind_status,#remind_status_label").hide();
+        $('#line_name').html("未设置行车信息");
+    }
+    var info =tmp_msg[0];
+
+    var sp_arr = info.name.split("-");
+    var bgn_sta = sp_arr[0].split("(")[1];
+    var end_sta = sp_arr[1].split(")")[0];
+    $('#line_name').html("当前线路: "+sp_arr[0].split("(")[0]);
+    $('#line_bgn').html("始发站: "+bgn_sta);
+    $('#line_end').html("终点站: "+end_sta);
+    $('#line_time').html("运营时间: "+info.startTime + "---"+ info.endTime);
+    var sel_group=$("#sta_remind");
+    var sta_arr = info.kn;
+    sel_group.empty();
+    //console.log(info.kn[0]);
+    if(sta_arr.length >0){
+        sel_group.data("sta_arr",sta_arr);
+        $.each(sta_arr,function(idx,row){
+            $("<option value="+idx+">"+row.name+"</option>").appendTo(sel_group);   
+        });
+        sta_count++;
+        sel_group.selectmenu( "refresh" );
+    }
+    console.log( sel_group.data("sta_arr"));
+    //设置站点
+    PosCmp.set_line_sta(sta_arr);
+    //设置阀值
+    PosCmp.set_reminde_threshold(200);
+}
+
+/********************************** 地图定位及初始化入口 ********************************************************/
+
+//实时坐标转换
+// var test_pos=[
+//     {lat:30.673327, lng:103.969666},
+//     {lat:30.674733, lng:103.963827},
+//     {lat:30.67858, lng:103.934731},
+//     {lat:30.679203, lng:103.929391},
+//     {lat:30.72487, lng:103.906462}
+//     ];
+// var test_count = 0;
+function trans_cordinate(){
+    var baidu_point = null;
+   
+    if((gps_point == null) || (gps_point.length == 0)){
+        return false;
+    }
+    //防止其他意外情况
+    try{
+        if(gps_point.lng){}
+    }catch(e){
+        return false;
+    }
+   
+    baidu_point= new BMap.Point(gps_point.lng, gps_point.lat);
+    // $1.log(baidu_point);
+    // //以下为测试用例
+    // baidu_point= new BMap.Point(test_pos[test_count].lng, test_pos[test_count].lat);
+    //  $1.log(test_pos[test_count]);
+    // test_count++;
+    // if(test_count >=test_pos.length){
+    //     alert("完成");
+    //     window.clearInterval(timer_num);
+    //     return false;
+    // }
+    cur_point = baidu_point;
+    BMap.Convertor.translate(baidu_point,0,translateCallback);
+}
+
+var c_count1 = 0,
+    cmp_sta = null;
+//坐标转换完之后的回调函数
+translateCallback = function (point){
+    // var marker = new BMap.Marker(point);  // 创建标注
+    // map.addOverlay(marker);              // 将标注添加到地图中
+    // marker.setAnimation(BMAP_ANIMATION_BOUNCE); //跳动的动画
+    if(c_count1 == 0){
+        alert("获取坐标"+point);
+        c_count1++;
+    }
+
+    move_pos(point);
+    //移动坐标后,需要判断：1.是否到达某个站点, 2.是否到达指定站点
+    //先重新计算坐标
+    PosCmp.rebuild_dis(point);
+    if( (cmp_sta = PosCmp.check_on_station()) != null){
+        if( $('#sta_remind').data("sta_arr")[cmp_sta].name == dst_sta){
+            //提醒到达预定站点
+            $1.log("到达预定站点");
+        }else{
+            //普通报站
+            $1.log("到达:"+ $('#sta_remind').data("sta_arr")[cmp_sta].name);
+        }
+        if(cmp_sta == sta_count ){
+            window.clearInterval(timer_num);
+             $1.log("到达终点站");
+        }
+    }else if( PosCmp.check_threshold() ){
+            //提醒即将到达预定站点
+            $1.log("即将到达:"+dst_sta);
+    }
+}
+
+
+
+//通过浏览器来定位
+function getLocation_by_browser(){
+    if(navigator.geolocation){
+        //navigator.geolocation.watchPosition(showPosition,showError);
+        navigator.geolocation.getCurrentPosition(browser_locate,browser_locate_error);
+        //$1.log("请求完成");
+    }else{
+        $1.log("浏览器不支持定位");
+    }
+
+}
+
+//存储gps坐标,并且转换坐标到百度坐标
+function browser_locate(position){
+    //console.log("Latitude: " + position.coords.longitude + "Longitude: " + position.coords.latitude);
+    gps_point = {"lng":position.coords.longitude, "lat":position.coords.latitude};
+   
+    trans_cordinate();
+}
+function browser_locate_error(error){
+    switch (error.code){
+        case 1:
+            alert("位置服务被拒绝。");
+            break;
+        case 2:
+            alert("暂时获取不到位置信息。");
+            break;
+        case 3:
+            alert("获取信息超时。");
+            break;
+        default:
+            alert("未知错误。");
+            break;
+    }
+    pgs_point = null;
+}
+
+//通过路由器来定位,路由器内部每隔几秒会保存当前的坐标到系统内存中,好处是,可以保存行车路径
+function getLocation_by_router(){
+
+    $.ajax({
+        type: 'GET',
+        url:"/action/bus_realtime",
+        data: {"rq_type":"gps_point","act":"get"},
+        cache: false,
+        beforeSend:function(){
+            // $.mobile.showPageLoadingMsg();
+        },
+        success:function(msg){
+            msg = eval("(" + msg + ")");
+            if(msg.length ==0){
+                //等待下一次
+            }else{
+                //转换坐标并移动
+                //样式 msg={"lng":104.332345, "lat": 30.11111};
+                gps_point = msg[0];
+                console.log(gps_point);
+                trans_cordinate();
+            }
+        },
+        complete:function(){
+            // Hide loading message
+            // $.mobile.hidePageLoadingMsg();
+        }
+    });
+}
+
+var cur_line = "";
+var req_count = 0;
+$(document).ready(function() {
+    $("#remind_status").change(function(){
+        dst_remind_status = $(this).val();
+        if($(this).val() == "off"){
+            $("#sta_remind").selectmenu("disable");
+            PosCmp.set_remind_sta(null);
+        }else{
+            $("#sta_remind").selectmenu( "enable" );
+            PosCmp.set_remind_sta($('#sta_remind').data("sta_arr")[dst_index]);
+        }
+    });
+    $("#sta_remind").change(function(){
+        dst_sta = $('#sta_remind option:selected').text();
+        dst_index = $(this).val();
+        //设置需要提醒的站点
+        PosCmp.set_remind_sta($('#sta_remind').data("sta_arr")[dst_index]);
+    });
+    $("#cur_position").click(function(){
+        move_center();
+    });
+
+
+    $("#remind_status").change();
+    if(test_able){
+        locate_fun = getLocation_by_browser;
+    }else{
+        locate_fun = getLocation_by_router;
+    }
+    //绘制行车路线
+   get_cur_line_info();
+   
+   //定位一次做测试
+   //locate_fun();
+   //trans_cordinate();
+   //设置定时器,每隔2秒获取一次GPS坐标
+    setTimeout(function(){
+        //add_marker();
+        //每隔一秒获取坐标，并移动marker
+        timer_num=self.setInterval("locate_fun()",5000);
+    },1500);
+});
+</script>
+</div>
+
+</body>
+</html>
+
