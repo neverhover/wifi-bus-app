@@ -42,8 +42,8 @@
 					<a href="#" data-role="button" data-icon="refresh" data-iconpos="right" data-mini="true" data-theme="e" ms-click="ride_switch">切换</a>
 				</div>
 				<input type="hidden" name="search_type" ms-model="search_type">
-				<a href="bus_dialog.html" data-role="button" data-inline="true" data-rel="dialog" data-transition="slidefade" >Open dialog</a>
-				<a id="search_btn" href="bus_line.html" data-role="button" data-inline="true" data-transition="slidefade" >查询</a>
+				<!-- <a href="bus_dialog.html" data-role="button" data-inline="true" data-rel="dialog" data-transition="slidefade" style="display:none;">Open dialog</a> -->
+				<a id="search_btn" href="bus_line.html" data-role="button" data-inline="true" data-transition="slidefade" style="display:none;">查询</a>
 				<input type="button" value="查询"  data-theme="b" ms-click="bus_commit">
 			</form>
 		</div>
@@ -134,7 +134,7 @@
 		       vm.rows=[
 		       	{name:"线路查询",ids:"type_line",active:false},
 		       	{name:"站点查询",ids:"type_sta",active:true},
-		       	{name:"换乘方案",ids:"type_ride",active:false},
+		       	{name:"换乘方案",ids:"type_ride",active:false}
 		       ];
 		       vm.search_line_vec=vm.search_sta_vec=[];
 		       vm.search_type = vm.rows[1].ids;

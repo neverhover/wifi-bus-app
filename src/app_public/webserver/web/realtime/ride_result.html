@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+    <meta charset="utf-8">
+    <title>公交换乘</title> 
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" hrfe="/css/jquery.mobile.theme-1.3.1.min.css"/>
+    <link rel="stylesheet" href="/css/jquery.mobile-1.3.1.min.css" />
+    <link rel="stylesheet" href="/css/bus_style.css" type="text/css" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    
+    <style type="text/css">
+ 
+    #l-map{height:100%;width:100%;float:left;border-right:1px solid #bcbcbc;}
+    #r-result{height:100px;width:100px;margin:0;}
+    #content_div{
+        position: absolute;
+        width: 100%;
+        height: -webkit-calc(100% - 12px);
+        height: -moz-calc(100% - 90px);
+        height: -ms-calc(100% - 12px);
+        height: -o-calc(100% - 12px);
+        height: calc(100% - 90px);
+        padding-top:5px;
+    }
+   
+    </style>
+
+    <script src="/js/jquery-1.10.1.min.js"></script>
+    <script src="/js/jquery.mobile-1.3.1.min.js"></script>
+
+     <!-- <script src="js/mass_min.js"></script> -->
+    <script src="/js/mass_merge.js"></script>
+    <!-- MVVM框架,用于后续的list -->
+    <script src="/js/avalon_min.js"></script>
+   	<script type="text/javascript" src="http://api.map.baidu.com/api?v=1.5&ak=43cfe61da7519c898a6951da09870b36"></script>
+    <script src="/js/convertor.js"></script>      <!-- 用于GPS转百度坐标-->
+    <script src="/js/position_cmp.js"></script>
+    <script src="/js/AreaRestriction.js"></script> <!--用于区域限制 -->
+</head>
+
+<div data-role="page" id="bus_line" data-title="线路详情" ms-controller="config_links" data-dom-cache="true">
+	<div data-role="header" data-position="fixed">
+		<a href="/realtime/bus_ride.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade" data-rel="back">返回</a>
+		<h1 ms-html="title"></h1>
+		<a href="#rightpanel" data-icon="gear" data-role="button" data-theme="b" data-inline="true" data-mini="true">配置</a>
+	</div>
+
+
+	<div data-role="content" id="content_div">
+		<div id="l-map" style="height:100%;width:98%;float:left;border-right:2px solid #bcbcbc;"></div>
+		
+	</div>
+
+	
+	<div data-role="footer" data-position="fixed">
+		 <a href="#leftpanel2" data-icon="bars" data-role="button" data-inline="true" data-mini="true">查看换乘结果</a>
+	</div>
+
+	
+
+    <div data-role="panel" id="rightpanel" data-position="right" data-display="overlay" data-theme="b">
+
+        <div>
+			<input type="text" name="bus_start_point" id="bus_start_point" placeholder="请输入起点" ms-model="s_point" >
+			<input type="text" name="bus_end_point" id="bus_end_point" placeholder="请输入终点" ms-model="e_point">
+			<a href="#" id="refresh_point" data-role="button" data-icon="refresh" data-iconpos="right" data-mini="true" data-theme="e" >切换</a>
+			<a id="search_btn" href="bus_line.html" data-role="button" data-inline="true" data-transition="slidefade" style="display:none;">查询</a>
+			<input type="button" value="查询"  data-theme="b" id="bus_commit">
+		</div>
+        <a href="#demo-links" data-rel="close" data-role="button" data-theme="c" data-icon="delete" data-inline="true">查询</a>
+
+	</div><!-- rightpanel -->
+
+	<!-- leftpanel2  -->
+    <div data-role="panel" id="leftpanel2" data-position="left" data-display="push" data-dismissible="true" data-theme="a">
+            
+        <div class="panel-content">
+            <h5 id="line_start"></h5>
+            <h5 id="line_end"></h5>
+            <legend>出行方式</legend>
+
+            <input type="hidden" ms-model="cur_chose" id="travel_chose">
+            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+		        
+		        <input name="travel_way" id="way_bus" ms-value='travel_way[0].val' checked="checked" type="radio" ms-click="way_click">
+		        <label for="way_bus">&nbsp;公交</label>
+		        <input name="travel_way" id="way_drv" ms-value='travel_way[1].val'  type="radio" ms-click="way_click">
+		        <label for="way_drv">&nbsp;驾车</label>
+		        <input name="travel_way" id="way_walk" ms-value='travel_way[2].val' type="radio" ms-click="way_click">
+		        <label for="way_walk">&nbsp;步行</label>
+		    </fieldset>
+		    <!-- 公交  -->
+            <div ms-visible="travel_way[0].active">
+            	<fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+			        <legend>特点</legend>
+			        <input name="bus_way" id="bus_way_1" value="0" checked="checked" type="radio">
+			        <label for="bus_way_1">&nbsp;较快捷</label>
+			        <input name="bus_way" id="bus_way_2" value="1" type="radio">
+			        <label for="bus_way_2">&nbsp;少换乘</label>
+			        <input name="bus_way" id="bus_way_3" value="2" type="radio">
+			        <label for="bus_way_3">&nbsp;少步行</label>
+		    	</fieldset>
+
+		    	<fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+			        <legend>交通工具</legend>
+			        <input name="way_tools" id="way_tools_1" value="3" checked="checked" type="radio">
+			        <label for="way_tools_1">&nbsp;&nbsp;包含地铁&nbsp;&nbsp;</label>
+			        <input name="way_tools" id="way_tools_2" value="4" type="radio">
+			        <label for="way_tools_2">&nbsp;&nbsp;不坐地铁&nbsp;&nbsp;</label>
+			    </fieldset>
+			    <div id="result_bus_div" style="height:200px;overflow-y:scroll;overflow-x:auto;color:black;text-shadow:  0 0px 0px #000000;" >
+           		</div>
+            </div>
+            <!-- 驾车  -->
+            <div ms-visible="travel_way[1].active">
+			    <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+			        <legend>特点</legend>
+			        <input name="drv_way" id="drv_way_1" value="0" checked="checked" type="radio">
+			        <label for="drv_way_1">最短时间</label>
+			        <input name="drv_way" id="drv_way_2" value="1" type="radio">
+			        <label for="drv_way_2">最短路径</label>
+			        <input name="drv_way" id="drv_way_3" value="2" type="radio">
+			        <label for="drv_way_3">不走高速</label>
+			    </fieldset>
+			    <div id="result_drive_div" style="height:200px;overflow-y:scroll;overflow-x:auto;color:black;text-shadow:  0 0px 0px #000000;" >
+			    </div>
+           	</div>
+			
+			<!-- 步行  -->
+		    <div ms-visible="travel_way[2].active">
+            	<div id="result_walk_div" style="height:200px;overflow-y:scroll;overflow-x:auto;color:black;text-shadow:  0 0px 0px #000000;" >
+           		</div>
+		    </div>
+
+            <a href="#demo-links" data-rel="close" data-role="button" data-theme="a" data-icon="delete" data-inline="true" data-mini="true">关闭面板</a>
+        </div><!-- /content wrapper for padding -->
+            
+    </div><!-- /leftpanel2 -->
+	<script type="text/javascript">
+		var start_point ="火车北站";
+		var end_point = "火车东站";
+		var map = new BMap.Map("l-map");            // 创建Map实例
+			map.centerAndZoom(new BMap.Point(104.067923,30.679943), 12);
+		var bus_transit = null;
+		var drive_transit =null;
+		var walk_transit = null;
+		var way_arr= [
+			{"obj":bus_transit, "func": rebuild_bus_way, last_pol:0},
+			{"obj":drive_transit, "func": rebuild_drv_way,last_pol:0},
+			{"obj":walk_transit, "func": rebuild_walk_way,last_pol:0}, , 
+		];
+		var last_travel_way = -1;
+		//console.log("11111" + window.ride_param.bgn_point +" " + window.ride_param.end_point);
+		
+		function init_map(){
+			map = null;
+			$('#l-map').html();
+			map = new BMap.Map("l-map");            // 创建Map实例
+			map.centerAndZoom(new BMap.Point(104.067923,30.679943), 12);
+		}
+		function rebuild_bus_way(){
+			var spol = parseInt($("input[name='bus_way']:checked").val());
+			var tool = $("input[name='way_tools']:checked").val();
+			var pol = 0;
+			
+			switch(spol){
+				case 0:
+					pol = BMAP_TRANSIT_POLICY_LEAST_TIME	//	0 最少时间。
+					break;
+				case 1:
+					pol = BMAP_TRANSIT_POLICY_LEAST_TRANSFER	//2 最少换乘。
+					break;
+				case 2:
+					pol = BMAP_TRANSIT_POLICY_LEAST_WALKING		//3 最少步行。
+					break;
+				case 3:
+					break;
+				case 4:
+					pol = BMAP_TRANSIT_POLICY_AVOID_SUBWAYS   //不乘地铁
+					break;
+				default:
+			}
+			switch(tool){
+				case "3":
+					break;
+				case "4":
+					pol =  BMAP_TRANSIT_POLICY_AVOID_SUBWAYS;
+					break;
+			}
+			
+			bus_transit = null;
+			bus_transit = new BMap.TransitRoute(map, {
+				renderOptions: {map: map,panel:"result_bus_div"},
+				policy: pol
+			});
+			bus_transit.search(start_point, end_point);
+		}
+		function rebuild_drv_way(){
+
+			var spol = parseInt($("input[name='drv_way']:checked").val());
+			switch(spol){
+				case 0:
+					pol = BMAP_TRANSIT_POLICY_LEAST_TIME	//	最少时间。
+					break;
+				case 1:
+					pol = BMAP_DRIVING_POLICY_LEAST_DISTANCE	//最短距离。
+					break;
+				case 2:
+					pol = BMAP_DRIVING_POLICY_AVOID_HIGHWAYS	//避开高速。
+					break;
+				default:
+					pol = BMAP_DRIVING_POLICY_LEAST_TIME	//最少时间。
+			}
+			console.log("we chose : " + pol);
+			drive_transit = null;
+			drive_transit = new BMap.DrivingRoute(map, {
+				renderOptions: {map: map,panel:"result_drive_div"},
+				policy: pol
+			});
+			drive_transit.search(start_point, end_point);
+		}
+
+		function rebuild_walk_way(){
+			walk_transit = null;
+			walk_transit = new BMap.WalkingRoute(map, {
+			renderOptions: {map: map,panel:"result_walk_div"},
+			policy:
+					BMAP_DRIVING_POLICY_LEAST_TIME	//最少时间。
+				// BMAP_DRIVING_POLICY_LEAST_DISTANCE	//最短距离。
+				// BMAP_DRIVING_POLICY_AVOID_HIGHWAYS	//避开高速。
+			});
+			walk_transit.search(start_point, end_point);
+			
+		}
+		
+		var model=null;
+		avalon.ready(function() {
+			 model = avalon.define("config_links", function(vm) {
+			 	vm.title="换乘出行";
+			 	vm.cur_chose = 0;
+			 	vm.travel_way=[
+				 	{name:"公交",active:true,val:"0"},
+				 	{name:"驾车",active:false,val:"1"},
+				 	{name:"步行",active:false,val:"2"}
+			 	];
+			 	vm.$watch("cur_chose",function(newValue, oldValue){
+			 		var count = 0;
+		       		vm.travel_way.forEach(function(row){
+		       			//$1.log(row);
+		       			if(count == vm.cur_chose){
+		       				row.active= true;
+		       			}else{
+		       				row.active = false;
+		       			}
+		       			count++;
+		       		});
+			 	})
+			 });
+			  avalon.scan();
+		});
+		$('#way_bus,#way_walk,#way_drv').click(function(){
+			
+			model.cur_chose = parseInt(this.value);
+			if(model.cur_chose != last_travel_way){
+				init_map();
+				way_arr[model.cur_chose].func();
+				last_travel_way = model.cur_chose;
+			}
+		});
+		
+		
+		$("input[name=bus_way],input[name=drv_way],input[name=way_tools]").change(function() {
+		    if(parseInt(this.value) != way_arr[model.cur_chose].last_pol){
+				init_map();
+				way_arr[model.cur_chose].func(model.cur_chose);
+				way_arr[model.cur_chose].last_pol = parseInt(this.value);
+			}
+		});
+		$("#line_start").html("从:"+start_point);
+		$("#line_end").html("到"+end_point);
+		$('#way_bus').click();
+		// //右边panel的内容初始化 
+		// var start_p = new BMap.Autocomplete({    //建立一个自动完成的对象
+		// 	"input" : "bus_start_point",
+		// 	"location": map
+		// });
+		
+		// var end_p = new BMap.Autocomplete({   //建立一个自动完成的对象
+		// 	"input" : "bus_end_point",
+		// 	"location": map
+		// });
+		// $(document).ready(function($) {
+		// 	$("#refresh_point").click(function(){
+		// 		var tmp = $('#bus_start_point').val();
+		// 		$('#bus_start_point').val($('#bus_end_point').val());
+		// 		$('#bus_end_point').val(tmp);
+		// 		start_p.hide();
+		// 		end_p.hide();
+		// 	});
+		// 	$("#bus_commit").click(function(){
+		// 		var bgn_point2 = $('#bus_start_point').val();
+		// 		var end_point2 =  $('#bus_end_point').val();
+		// 		if( bgn_point2 &&  end_point2){
+		// 			window.ride_param = [];
+		// 			window.ride_param.bgn_point2= bgn_point2;
+		// 			window.ride_param.end_point2= end_point2;
+		// 			$('#search_btn').attr("href","ride_result.html");
+		// 			$('#search_btn').trigger('click');
+		// 		}
+				
+		// 	});
+		// });
+	</script>
+</div>
+</html>

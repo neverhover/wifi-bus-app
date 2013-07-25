@@ -17,24 +17,7 @@
 	<script src="/js/mass_merge.js"></script>
 	<!-- MVVM框架,用于后续的list -->
 	<script src="/js/avalon_min.js"></script>
-	<script type="text/javascript">
-		( function( $, undefined ) {
-		    $( document ).bind( "pagechange", function( e ) {
-		    	var pre_id=$.mobile.urlHistory.previousIndex;
-		    	var act_id=$.mobile.urlHistory.activeIndex;
-                if ( (pre_id >0 ) && (pre_id > act_id)) {
-                	//得到完整的URL
-                    var dataUrl = $.mobile.urlHistory.stack[pre_id].pageUrl;
-                    var forwordPage=$.mobile.pageContainer.children(":jqmData(url='" + dataUrl + "')");
-                    if(forwordPage){
-                    	$1.log("we did remove");
-                        forwordPage.remove();
-                    }
-                }
-                $.mobile.urlHistory.clearForward();
-		    });
-		})( jQuery );
-	</script>
+	
 </head>
 
 <body> 
@@ -52,11 +35,11 @@
 				<label for="line_direction" class="select">线路名称</label>
 				<input  name="line_name" ms-model="set_name"  placeholder="请输入线路名称,如: 92" size="12">
 				<label for="line_direction"  class="select">行车方向选择</label>
+				<label for="line_direction" >百度数据中,使用上下行方向性来表示，而不使用去程和回程逻辑性的表述</label>
 				<select name="line_direction" id="line_direction" data-native-menu="false">
-				    <option>行车方向选择</option>
-				    <option value="1">去程</option>
-				    <option value="2">回程</option>
-				    <option value="3">环线</option>
+				    <option value="1" selected="selected">去程--百度上行</option>
+				    <option value="2">回程--百度下行</option>
+				    <option value="3">环线--百度上行</option>
 				</select>
 				<label for="cur_info">线路:</label>
 				<span ms-html="set_name"></span>&nbsp;&nbsp;&nbsp;<span ms-html="dir_info"></span>
@@ -149,13 +132,13 @@
 		      			vm.set_name = vm.cur_info[0].line_name;
 		      			switch(vm.cur_info[0].cur_dec){
 		      				case 1:
-		      					vm.dir_info = "去程";
+		      					vm.dir_info = "去程(百度-上行)";
 		      					break;
 		      				case 2:
-		      					vm.dir_info = "回程";
+		      					vm.dir_info = "回程(百度-下行)";
 		      					break;
 		      				case 3:
-		      					vm.dir_info = "环线";
+		      					vm.dir_info = "环线(百度-上行)";
 		      					break;
 		      			}
 		      		}

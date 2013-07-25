@@ -170,9 +170,13 @@ PRIVATE int set_bus_config_bus_cur_line_info(){
 		return RET_ERROR;
 	}
 	int ret_out = 0, ret_in=0, i = 0, ret;
-	bus_line_info_t *info =NULL, *tmp_info = NULL;
+	bus_line_info_t *info =NULL, *tmp_info = NULL, null_line;
 	v_line_sta_info_t *out_all =NULL, *out_tmp =NULL,cond;
 	v_line_sta_info_t *in_all =NULL, *in_tmp =NULL;
+	int t_flag = 0;
+	#define NOT_FOUND_LINE 	(1 << 0)
+	#define NOT_FOUND_OUT	(1 << 1 )
+	#define NOT_FOUND_IN	(1 << 2 )
 	memset(&cond, 0, sizeof(&cond));
 	
 	WEB_STRACE("cur line name is %s\n", bus_num);
@@ -180,29 +184,40 @@ PRIVATE int set_bus_config_bus_cur_line_info(){
 	if( (ret = db_bus_line_info_findby_line_name(bus_num, &info, 1, SQL_SEARCH_EQUAL)) <=0 ){
 		//使用模糊查询
 		if( (ret = db_bus_line_info_findby_line_name(bus_num, &info, 1, SQL_SEARCH_FUZZY)) <=0 ){
-			WEB_STRACE("db error return %d",ret);
-			return RET_ERROR;
+			WEB_STRACE("db error return %d,please try use baidu",ret);
+			//不再返回,而是单纯的保存线路和方向,用于后续直接使用百度数据
+			//return RET_ERROR;
+			t_flag |= NOT_FOUND_LINE;
+			memset(&null_line, 0, sizeof(bus_line_info_t));
+			info = &null_line;
 		}
 	}
 	
-	
-	cond.id= info->id;
-	cond.kind_id = KIND_OUTBOUND;
-	cond.line_type_id = 0;
-	//获取去程信息
-	if( (ret_out = db_v_line_sta_info_findby_condition(&cond, &out_all, 1, SQL_SEARCH_EQUAL)) <=0 ){
-		WEB_STRACE("db error return %d",ret);
-		return RET_ERROR;
+	if(t_flag & NOT_FOUND_LINE){
+		t_flag |= NOT_FOUND_OUT;
+		t_flag |= NOT_FOUND_IN;
+	}else{
+		cond.id= info->id;
+		cond.kind_id = KIND_OUTBOUND;
+		cond.line_type_id = 0;
+		//获取去程信息
+		if( (ret_out = db_v_line_sta_info_findby_condition(&cond, &out_all, 1, SQL_SEARCH_EQUAL)) <=0 ){
+			WEB_STRACE("db error return %d",ret);
+			//return RET_ERROR;
+			t_flag |= NOT_FOUND_OUT;
+		}
+		
+		cond.id= info->id;
+		cond.kind_id = KIND_INBOUND;
+		cond.line_type_id = 0;
+		//获取回程信息
+		if( (ret_in = db_v_line_sta_info_findby_condition(&cond, &in_all, 1, SQL_SEARCH_EQUAL)) <=0 ){
+			WEB_STRACE("db error return %d",ret);
+			//return RET_ERROR;
+			t_flag |= NOT_FOUND_IN;
+		}
 	}
 	
-	cond.id= info->id;
-	cond.kind_id = KIND_INBOUND;
-	cond.line_type_id = 0;
-	//获取回程信息
-	if( (ret_in = db_v_line_sta_info_findby_condition(&cond, &in_all, 1, SQL_SEARCH_EQUAL)) <=0 ){
-		WEB_STRACE("db error return %d",ret);
-		return RET_ERROR;
-	}
 	
 	
 	json_object *new_obj = NULL, *sta_obj = NULL;
@@ -216,13 +231,12 @@ PRIVATE int set_bus_config_bus_cur_line_info(){
 	
 	json_object_object_add(new_obj, "line_name", json_object_new_string(bus_num));
 	json_object_object_add(new_obj, "cur_dec", json_object_new_int(bus_derection));
+
 	json_object_object_add(new_obj, "line_type", json_object_new_string(info->line_type));
-	
 	json_object_object_add(new_obj, "line_out", json_object_new_string(info->out_sta));
 	json_object_object_add(new_obj, "line_in", json_object_new_string(info->in_sta));
 	json_object_object_add(new_obj, "line_out_time", json_object_new_string(info->outbound));
 	json_object_object_add(new_obj, "line_in_time", json_object_new_string(info->inbound));
-	
 	json_object_object_add(new_obj, "line_ticket", json_object_new_string(info->ticket));
 	json_object_object_add(new_obj, "line_bus_type", json_object_new_string(info->bus_type));
 	json_object_object_add(new_obj, "out_sta", json_object_new_string(info->out_sta));
@@ -234,29 +248,34 @@ PRIVATE int set_bus_config_bus_cur_line_info(){
 		json_object_object_add(new_obj, "line_loop", json_object_new_boolean(FALSE));
 	}
 
-	
+
 	json_object_object_add(new_obj, "line_active", json_object_new_string(info->status));
+	
+	
 #if 1
-	for (in_tmp = in_all; ret_in > 0; ret_in --, in_tmp ++){
-		tmp_sta2 = json_object_new_object();
-		json_object_object_add(tmp_sta2, "id", json_object_new_int(in_tmp->seq));
-		json_object_object_add(tmp_sta2, "name", json_object_new_string(in_tmp->sta_name));
-		json_object_object_add(tmp_sta2, "lng", json_object_new_string(in_tmp->st_lng));
-		json_object_object_add(tmp_sta2, "lat", json_object_new_string(in_tmp->st_lat));
-		json_object_array_add(sta_in, tmp_sta2);
+	if( !(t_flag & NOT_FOUND_IN ) ){
+		
+		for (in_tmp = in_all; ret_in > 0; ret_in --, in_tmp ++){
+			tmp_sta2 = json_object_new_object();
+			json_object_object_add(tmp_sta2, "id", json_object_new_int(in_tmp->seq));
+			json_object_object_add(tmp_sta2, "name", json_object_new_string(in_tmp->sta_name));
+			json_object_object_add(tmp_sta2, "lng", json_object_new_string(in_tmp->st_lng));
+			json_object_object_add(tmp_sta2, "lat", json_object_new_string(in_tmp->st_lat));
+			json_object_array_add(sta_in, tmp_sta2);
+		}
 	}
 	json_object_object_add(new_obj, "line_in", sta_in);
 #endif
-	for (out_tmp = out_all; ret_out > 0; ret_out --, out_tmp ++){
-		tmp_sta = json_object_new_object();
-		json_object_object_add(tmp_sta, "id", json_object_new_int(out_tmp->seq));
-		json_object_object_add(tmp_sta, "name", json_object_new_string(out_tmp->sta_name));
-		json_object_object_add(tmp_sta, "lng", json_object_new_string(out_tmp->st_lng));
-		json_object_object_add(tmp_sta, "lat", json_object_new_string(out_tmp->st_lat));
-		json_object_array_add(sta_out, tmp_sta);
+	if( !(t_flag & NOT_FOUND_OUT ) ){
+		for (out_tmp = out_all; ret_out > 0; ret_out --, out_tmp ++){
+			tmp_sta = json_object_new_object();
+			json_object_object_add(tmp_sta, "id", json_object_new_int(out_tmp->seq));
+			json_object_object_add(tmp_sta, "name", json_object_new_string(out_tmp->sta_name));
+			json_object_object_add(tmp_sta, "lng", json_object_new_string(out_tmp->st_lng));
+			json_object_object_add(tmp_sta, "lat", json_object_new_string(out_tmp->st_lat));
+			json_object_array_add(sta_out, tmp_sta);
+		}
 	}
-	
-	
 	json_object_object_add(new_obj, "line_out", sta_out);
 
 	
@@ -265,10 +284,15 @@ PRIVATE int set_bus_config_bus_cur_line_info(){
 	
 	
 	ret = json_object_put(new_obj);
-	
-	db_free(info);
-	db_free(out_all);
-	db_free(in_all);
+	if( !(t_flag & NOT_FOUND_LINE ) ){
+		db_free(info);
+	}
+	if( !(t_flag & NOT_FOUND_OUT ) ){
+		db_free(out_all);
+	}
+	if( !(t_flag & NOT_FOUND_IN ) ){
+		db_free(in_all);
+	}
 	
 	WEB_STRACE("ret:%d ,info NULL: %d, sta_in :%d, sta_out : %d, tmp_sta:%d\n", 
 		ret,
