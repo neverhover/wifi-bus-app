@@ -23,6 +23,9 @@
         height: calc(100% - 90px);
         padding-top:5px;
     }
+    td{
+    	text-align:"center";
+    }
    
     </style>
 
@@ -43,7 +46,7 @@
 	<div data-role="header" data-position="fixed">
 		<a href="/realtime/bus_ride.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade" data-rel="back">返回</a>
 		<h1 ms-html="title"></h1>
-		<a href="#rightpanel" data-icon="gear" data-role="button" data-theme="b" data-inline="true" data-mini="true">配置</a>
+		<!-- <a href="#rightpanel" data-icon="gear" data-role="button" data-theme="b" data-inline="true" data-mini="true">配置</a> -->
 	</div>
 
 
@@ -55,11 +58,12 @@
 	
 	<div data-role="footer" data-position="fixed">
 		 <a href="#leftpanel2" data-icon="bars" data-role="button" data-inline="true" data-mini="true">查看换乘结果</a>
+		 <a href="#dialog" data-rel="popup" data-position-to="window" data-transition="pop"  data-theme="a" data-inline="true" data-mini="true" id="taxi_cost_href" data-icon="star">打车费用</a>
 	</div>
 
 	
 
-    <div data-role="panel" id="rightpanel" data-position="right" data-display="push" data-theme="b">
+    <!-- <div data-role="panel" id="rightpanel" data-position="right" data-display="push" data-theme="b">
 
         <div>
 			<input type="text" name="bus_start_point" id="bus_start_point" placeholder="请输入起点"  >
@@ -69,8 +73,8 @@
 			<input type="button" value="查询"  data-theme="b" id="bus_commit">
 		</div>
         <a href="#demo-links" data-rel="close" data-role="button" data-theme="c" data-icon="delete" data-inline="true">关闭面板</a>
-
-	</div><!-- rightpanel -->
+        
+	</div> --><!-- rightpanel -->
 
 	<!-- leftpanel2  -->
     <div data-role="panel" id="leftpanel2" data-position="left" data-display="push" data-dismissible="true" data-theme="a">
@@ -78,9 +82,7 @@
         <div class="panel-content">
             <h5 id="line_start"></h5>
             <h5 id="line_end"></h5>
-            <a href="#dialog" data-rel="popup" data-position-to="window" data-transition="pop"  data-theme="a" data-inline="true" data-mini="true" id="taxi_cost_href">打车费用</a>
-            
-
+            <a href="#" data-role="button" data-icon="refresh" data-inline="true" data-mini="true" id="change_point">查看返程</a>
             <input type="hidden" ms-model="cur_chose" id="travel_chose">
             <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
 		        <legend>出行方式</legend>
@@ -150,24 +152,24 @@
 	        <table data-role="table" id="movie-table" data-mode="reflow" class="ui-responsive table-stroke">
 				<thead>
 					<tr>
-						<th data-priority="1">描述</th>
-						<th data-priority="persist">起步价(元)</th>
-						<th data-priority="2">单价(元/公里)</th>
-						<th data-priority="3"><abbr title="Rotten Tomato Rating">总费用</abbr></th>
+						<th data-priority="1" style="text-align:center">描述</th>
+						<th data-priority="persist" style="text-align:center">起步价(元)</th>
+						<th data-priority="2" style="text-align:center">单价(元/公里)</th>
+						<th data-priority="3" style="text-align:center">总费用(元)</th>
 					</tr>
 				</thead>
 				<tbody>
 					<tr>
-						<th>白天(06:00-23:00)</th>
-						<td>{{taxi_f.day.initialFare}}</td>
-						<td>{{taxi_f.day.unitFare}}</td>
-						<td>{{taxi_f.day.totalFare}}</td>
+						<td style="text-align:center">白天(06:00-23:00)</td>
+						<td style="text-align:center">{{taxi_f.day.initialFare}}</td>
+						<td style="text-align:center">{{taxi_f.day.unitFare}}</td>
+						<td style="text-align:center">{{taxi_f.day.totalFare}}</td>
 					</tr>
 					<tr>
-						<th>夜晚(23:00-06:00)</th>
-						<td>{{taxi_f.night.initialFare}}</td>
-						<td>{{taxi_f.night.unitFare}}</td>
-						<td>{{taxi_f.night.totalFare}}</td>
+						<td style="text-align:center">夜晚(23:00-06:00)</td>
+						<td style="text-align:center">{{taxi_f.night.initialFare}}</td>
+						<td style="text-align:center">{{taxi_f.night.unitFare}}</td>
+						<td style="text-align:center">{{taxi_f.night.totalFare}}</td>
 					</tr>
 				</tbody>
 	        </table>
@@ -175,8 +177,8 @@
 	    </div>
 	</div>
 	<script type="text/javascript">
-		var start_point ="火车北站";
-		var end_point = "火车东站";
+		// var start_point ="火车北站";
+		// var end_point = "火车东站";
 		var map = new BMap.Map("l-map");            // 创建Map实例
 		map.centerAndZoom("成都", 12);
 		var bus_transit = null;
@@ -249,7 +251,7 @@
 				default:
 					pol = BMAP_DRIVING_POLICY_LEAST_TIME	//最少时间。
 			}
-			console.log("we chose : " + pol);
+			// console.log("we chose : " + pol);
 			drive_transit = null;
 			drive_transit = new BMap.DrivingRoute(map, {
 				renderOptions: {map: map,panel:"result_drive_div"},
@@ -257,7 +259,6 @@
 			});
 			//(按驾车的最短路程计算)
 			model.taxi_type = model.drv_text[spol];
-			console.log($('#drv_way_'+spol).html());
 			drive_transit.setSearchCompleteCallback(render_drv_ret);
 			drive_transit.search(start_point, end_point);
 		}
@@ -268,14 +269,13 @@
 			}else{
 				taxi_cost = dr_ret.taxiFare;
 				model.taxi_f = taxi_cost;
-				console.log(model.taxi_f);
-				console.log(dr_ret);
+				// console.log(model.taxi_f);
+				// console.log(dr_ret);
 			}
 		}
 		function rebuild_taxi_ret(){
 			drive_transit = null;
 			drive_transit = new BMap.DrivingRoute(map, {
-				renderOptions: {map: map,panel:"result_drive_div"},
 				policy: BMAP_DRIVING_POLICY_LEAST_DISTANCE
 			});
 			model.taxi_type = model.drv_text[0];
@@ -330,10 +330,12 @@
 			 });
 			  avalon.scan();
 			  $('#way_bus').click();
+			  $("td th").attr("text-align","center");
 		});
 		$('#way_bus,#way_walk,#way_drv').click(function(){
 			
 			model.cur_chose = parseInt(this.value);
+			
 			if(model.cur_chose != last_travel_way){
 				init_map();
 				way_arr[model.cur_chose].func();
@@ -354,39 +356,56 @@
 			}
 		});
 		$("#line_start").html("从:"+start_point);
-		$("#line_end").html("到"+end_point);
-		
-		//交换源目
-		$("#refresh_point").click(function(){
-			var tmp = $('#bus_start_point').val();
-			$('#bus_start_point').val($('#bus_end_point').val());
-			$('#bus_end_point').val(tmp);
-			start_p.hide();
-			end_p.hide();
-		});
-		//确定查询
-		$("#bus_commit").click(function(){
-			var bgn_point2 = $('#bus_start_point').val();
-			var end_point2 =  $('#bus_end_point').val();
-			if( bgn_point2 &&  end_point2){
-				window.ride_param = [];
-				window.ride_param.bgn_point2= bgn_point2;
-				window.ride_param.end_point2= end_point2;
-				$('#search_btn').attr("href","ride_result.html");
-				$('#search_btn').trigger('click');
+		$("#line_end").html("到:"+end_point);
+
+		$("#change_point").click(function(){
+			var tmp = start_point;
+			start_point = end_point;
+			end_point = tmp;
+			tmp = null;
+			//重新计算
+			$("#line_start").html("从: "+start_point);
+			$("#line_end").html("到: "+end_point);
+			init_map();
+			way_arr[model.cur_chose].func();
+			last_travel_way = model.cur_chose;
+			if(model.cur_chose == 0){
+				//公交的时候,计算taxi价格
+				rebuild_taxi_ret();
 			}
 			
 		});
-		//右边panel的内容初始化 
-		var start_p = new BMap.Autocomplete({    //建立一个自动完成的对象
-			"input" : "bus_start_point",
-			"location": map
-		});
+		// //交换源目
+		// $("#refresh_point").click(function(){
+		// 	var tmp = $('#bus_start_point').val();
+		// 	$('#bus_start_point').val($('#bus_end_point').val());
+		// 	$('#bus_end_point').val(tmp);
+		// 	start_p.hide();
+		// 	end_p.hide();
+		// });
+		// //确定查询
+		// $("#bus_commit").click(function(){
+		// 	var bgn_point2 = $('#bus_start_point').val();
+		// 	var end_point2 =  $('#bus_end_point').val();
+		// 	if( bgn_point2 &&  end_point2){
+		// 		window.ride_param = [];
+		// 		window.ride_param.bgn_point2= bgn_point2;
+		// 		window.ride_param.end_point2= end_point2;
+		// 		$('#search_btn').attr("href","ride_result.html");
+		// 		$('#search_btn').trigger('click');
+		// 	}
+			
+		// });
+		// //右边panel的内容初始化 
+		// var start_p = new BMap.Autocomplete({    //建立一个自动完成的对象
+		// 	"input" : "bus_start_point",
+		// 	"location": map
+		// });
 		
-		var end_p = new BMap.Autocomplete({   //建立一个自动完成的对象
-			"input" : "bus_end_point",
-			"location": map
-		});
+		// var end_p = new BMap.Autocomplete({   //建立一个自动完成的对象
+		// 	"input" : "bus_end_point",
+		// 	"location": map
+		// });
 		
 	</script>
 </div>
