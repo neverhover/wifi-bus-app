@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="zh_cn">
 <head>
     <meta charset="utf-8">
@@ -23,9 +23,6 @@
         height: calc(100% - 90px);
         padding-top:5px;
     }
-    td{
-    	text-align:"center";
-    }
    
     </style>
 
@@ -40,9 +37,9 @@
     <script src="/js/convertor.js"></script>      <!-- 用于GPS转百度坐标-->
     <script src="/js/position_cmp.js"></script>
     <script src="/js/AreaRestriction.js"></script> <!--用于区域限制 -->
-</head>
+</head> -->
 
-<div data-role="page" id="bus_line" data-title="线路详情" ms-controller="mod_ride_result" data-dom-cache="true">
+<div data-role="page" id="bus_line" data-title="线路详情" ms-controller="mod_ride_result" data-dom-cache="false">
 	<div data-role="header" data-position="fixed">
 		<a href="/realtime/bus_ride.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade" data-rel="back">返回</a>
 		<h1 ms-html="title"></h1>
@@ -179,6 +176,8 @@
 	<script type="text/javascript">
 		// var start_point ="火车北站";
 		// var end_point = "火车东站";
+		var start_point = window.ride_param.bgn_point;
+		var end_point = window.ride_param.end_point;
 		var map = new BMap.Map("l-map");            // 创建Map实例
 		map.centerAndZoom("成都", 12);
 		var bus_transit = null;
@@ -330,10 +329,9 @@
 			 });
 			  avalon.scan();
 			  $('#way_bus').click();
-			  $("td th").attr("text-align","center");
 		});
 		$('#way_bus,#way_walk,#way_drv').click(function(){
-			
+			console.log("clicked");
 			model.cur_chose = parseInt(this.value);
 			
 			if(model.cur_chose != last_travel_way){
@@ -375,6 +373,9 @@
 			}
 			
 		});
+		$(document).ready(function($) {
+			$('#way_bus').click();
+		});
 		// //交换源目
 		// $("#refresh_point").click(function(){
 		// 	var tmp = $('#bus_start_point').val();
@@ -409,4 +410,4 @@
 		
 	</script>
 </div>
-</html>
+<!-- </html> -->
