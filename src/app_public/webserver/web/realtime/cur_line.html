@@ -10,19 +10,22 @@
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
     
     <style type="text/css">
-    #allmap {width: 100%;height: 100%;overflow: hidden;margin:0;}
-    #l-map{height:100%;width:100%;float:left;border-right:1px solid #bcbcbc;}
+    #l-map{height:98%;width:98%;float:left;border-right:1px solid #bcbcbc;}
     #r-result{height:100px;width:100px;margin:0; display: none; }
     #content_div{
         position: absolute;
         width: 100%;
-        height: -webkit-calc(100% - 12px);
+        height: 350px;
+        height: calc(100% - 40px);
         height: -moz-calc(100% - 90px);
         height: -ms-calc(100% - 12px);
         height: -o-calc(100% - 12px);
-        height: calc(100% - 90px);
+        height: -webkit-calc(100% - 12px);
         padding-top:5px;
+        padding-right:5px;
+        padding-left:5px;
     }
+    
     </style>
 
     <script src="/js/jquery-1.10.1.min.js"></script>
@@ -52,7 +55,6 @@
         <div id="l-map"></div>
        
         <div id="r-result"></div>
-         <div id="r-result2" style="height:80%;width:80%;float:right;border-right:2px solid #bcbcbc;"></div>
         <audio src="shuyu.mp3" controls="controls" id="music_obj" style="display:none">浏览器不支持音频播放</audio>
     </div>
 
@@ -117,7 +119,8 @@ var test_able =1,               //如果是测试，则使用当前浏览器的�
     gps_point = null;           //获取的GPS坐标
     locate_fun = null,          //定时器到达后，需要调用的函数，这里是一个引用,与test_able有关
     locate_interval= 4000;      //定时器的周期
-var sta_arr = null;
+var sta_arr = null;		//站点集合
+var brower_geo_obj = null;
 
 //设置地图的版权信息
 function add_copyright(){
@@ -166,6 +169,13 @@ function add_marker(point){
     var label = new BMap.Label("我是百度标注哦",{offset:new BMap.Size(20,-10)});
     curr_marker.setLabel(label); //添加百度label
 }
+//当前定位
+function add_geo_ctrl(){
+	var geo = new BMap.GeolocationControl();
+	map.addControl(geo);
+	geo.location();
+	//geo.locationSuccess(function(){alert("ok")});
+}
 //移动当前的位置
 function move_pos(baidupoint){
     //
@@ -202,7 +212,7 @@ function move_pos(baidupoint){
         });
         curr_marker.setLabel(label); //添加label
         //点击显示当前位置
-        curr_marker.addEventListener("mousedown", function(e){        
+        curr_marker.addEventListener("click", function(e){        
             var pt = e.point;
             gc.getLocation(pt, function(rs){
                 if(rs == null || rs.address == undefined){
@@ -254,7 +264,8 @@ function move_center(){
     //     var addComp = rs.addressComponents;
     //     // alert(addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber +","+rs.business);
     //     alert(rs.address+","+rs.business);
-    // });    
+    // });
+    return true;   
 }
 //获取公交线路
 function get_cur_line_info(){
@@ -342,7 +353,7 @@ function set_bus_line(msg){
              add_navigation();
              add_scale();
              add_area_restrict();
-            
+             add_geo_ctrl(); 
              //add_marker();
             // setTimeout(function(){
             //     //add_marker();
@@ -361,10 +372,10 @@ function set_bus_line(msg){
              
            }
         },
-        // onBusListHtmlSet: function(ht){
-        //     locate_fun();
-        //      $1.log("we set marker null after complete init html "+ht);
-        // },
+        onBusListHtmlSet: function(ht){
+              timer_num=self.setInterval("locate_fun()",locate_interval);
+              //$1.log("we set marker null after complete init html "+ht);
+         },
         // onPolylinesSet: function(pl){
         //     $1.log(pl);
         // },
@@ -466,7 +477,8 @@ function trans_cordinate(){
     //     window.clearInterval(timer_num);
     //     return false;
     // }
-    cur_point = baidu_point;
+    
+    //console.log("gps:"+cur_point.lng + " "+cur_point.lat);
     BMap.Convertor.translate(baidu_point,0,translateCallback);
 }
 
@@ -481,7 +493,7 @@ translateCallback = function (point){
         //alert("获取坐标"+point);
         c_count1++;
     }
-
+    cur_point = point;
     move_pos(point);
     //移动坐标后,需要判断：1.是否到达某个站点, 2.是否到达指定站点
     //先重新计算坐标
@@ -499,7 +511,7 @@ translateCallback = function (point){
             // $1.log("到达:"+ $('#sta_remind').data("sta_arr")[cmp_sta].name);
             if(jQuery.inArray(sta_arr[cmp_sta].name , passed_sta) == -1){
                 alert("到达:"+ sta_arr[cmp_sta].name);
-                passed_sta.push(dst_sta);
+                passed_sta.push(sta_arr[cmp_sta].name);
             }
             
         }
@@ -525,37 +537,59 @@ var locate_tooltip_obj  = $("#locate_tooltip");
 function getLocation_by_browser(){
     if(navigator.geolocation){
         //navigator.geolocation.watchPosition(showPosition,showError);
-        //locate_tooltip_obj.html("定位中....");
-        navigator.geolocation.getCurrentPosition(browser_locate,browser_locate_error);
-        //$1.log("请求完成");
+        locate_tooltip_obj.html("定位中....");
+        //navigator.geolocation.getCurrentPosition(browser_locate,browser_locate_error);
+        brower_geo_obj.getCurrentPosition(browser_locate_baidu,{enableHighAccuracy:true,timeout:locate_interval});
+	//$1.log("请求完成");
     }else{
-        alert("浏览器不支持定位");
-        //locate_tooltip_obj.html("浏览器不支持定位");
+        //alert("浏览器不支持定位");
+        locate_tooltip_obj.html("浏览器不支持定位");
     }
 
+}
+function browser_locate_baidu(position){
+    
+    if(position == null){
+        locate_tooltip_obj.html("浏览器定位失败");
+        return false;
+    }
+    if(brower_geo_obj.getStatus() != BMAP_STATUS_SUCCESS){
+          locate_tooltip_obj.html("浏览器定位失败");
+          return false;
+    }
+    console.log(position.point.lng+" "+ position.point.lat);
+    locate_tooltip_obj.html("定位精度:"+position.accuracy+"米");
+    //已经是转换后的百度Point
+    translateCallback(position.point);
+    //BMap.Convertor.translate(position.point,0,translateCallback);
 }
 
 //存储gps坐标,并且转换坐标到百度坐标
 function browser_locate(position){
     //console.log("Latitude: " + position.coords.longitude + "Longitude: " + position.coords.latitude);
-    gps_point = {"lng":position.coords.longitude, "lat":position.coords.latitude};
-    //locate_tooltip_obj.html("");
-    trans_cordinate();
+    //console.log(position);
+    if(position == null){
+	   locate_tooltip_obj.html("浏览器定位失败");
+	return false;
+    }
+	locate_tooltip_obj.html("");
+	gps_point = {"lng":position.coords.longitude, "lat":position.coords.latitude};
+	trans_cordinate();
 }
 function browser_locate_error(error){
     //locate_tooltip_obj.html("定位失败..");
     switch (error.code){
         case 1:
-            alert("位置服务被拒绝。");
+            locate_tooltip_obj.html("位置服务被拒绝。");
             break;
         case 2:
-            alert("暂时获取不到位置信息。");
+            locate_tooltip_obj.html("暂时获取不到位置信息。");
             break;
         case 3:
-            alert("获取信息超时。");
+            locate_tooltip_obj.html("获取信息超时。");
             break;
         default:
-            alert("未知错误。");
+            locate_tooltip_obj.html("未知错误。");
             break;
     }
     pgs_point = null;
@@ -588,7 +622,7 @@ function getLocation_by_router(){
         complete:function(){
             // Hide loading message
             // $.mobile.hidePageLoadingMsg();
-            //locate_tooltip_obj.html("");
+            locate_tooltip_obj.html("");
         }
     });
 }
@@ -622,9 +656,11 @@ $(document).ready(function() {
         switch($(this).val()){
             case "browser":
                 locate_fun = getLocation_by_browser;
+		brower_geo_obj = new BMap.Geolocation();
                 break;
             case "router":
                 locate_fun = getLocation_by_router;
+		brower_geo_obj = null;
                 break;
         }
     });
@@ -645,11 +681,11 @@ $(document).ready(function() {
    //locate_fun();
    //trans_cordinate();
    //设置定时器,每隔2秒获取一次GPS坐标
-    // setTimeout(function(){
-    //     //add_marker();
-    //     //每隔一秒获取坐标，并移动marker
-    //     timer_num=self.setInterval("locate_fun()",locate_interval);
-    // },1000);
+     setTimeout(function(){
+         //add_marker();
+         //每隔一秒获取坐标，并移动marker
+         //timer_num=self.setInterval("locate_fun()",locate_interval);
+     },1000);
 });
 </script>
 </div>
