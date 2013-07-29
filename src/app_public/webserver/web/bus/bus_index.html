@@ -15,7 +15,7 @@
 		<div class="bus_form">
 			<form ms-controller="mod_bus_search" id="bus_search_form">
 				<div ms-visible="rows[0].active">
-					<input type="number" name="bus_line" ms-model="line" ms-bind-line="search_bind" placeholder="请输入线路名称,如: 92" >
+					<input  name="bus_line" ms-model="line" ms-bind-line="search_bind" placeholder="请输入线路名称,如: 92" >
 					
 						<ul id="search_line" data-role="listview" data-inset="true" ms-each-sline="search_line_vec" class="ui-icon-alt">
 							<li ms-data-bus-line-name="sline.line_name" ms-click="search_li_click" >
