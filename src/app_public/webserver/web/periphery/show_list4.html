@@ -1,0 +1,179 @@
+<div data-role="page" id="show_preiphery_list" ms-controller="mod_per_list"  data-dom-cache="true">
+	<div data-role="header" data-position="fixed">
+		<a href="/periphery/index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade" data-rel="back" >返回</a>
+		<h1 ms-html="list_keyword"></h1>
+		<a ms-click="change_show" data-role="button" data-icon="star" data-iconpos="right" data-inline="true" data-theme="b" data-transition="slidefade" id="btn_chg">地图</a>
+	</div>
+
+	<div data-role="content" id="search_view">
+		<div id='periphery_map' ms-visible="map_active"></div>
+		<div id='periphery_list'ms-visible="list_active" style="margin-bottom: 10px;margin-right: 10px" >读取中...</div>
+	</div>
+
+	<div data-role="footer" data-position="fixed">
+		<a href="#menu_range" data-rel="popup" data-position-to="window" data-icon="bars" data-role="button" data-inline="true" data-mini="true" data-transition="pop">范围筛选</a>
+	</div>
+
+	<div data-role="popup" id="menu_range" data-overlay-theme="a" data-theme="c"  data-corners="false">
+	    <div data-role="header" data-theme="a">
+	        <h1>范围筛选</h1>
+	        <!-- <a href="#"  data-rel="back"  data-icon="delete" data-role="button" data-theme="b" data-inline="true" data-mini="true" data-iconpos="notext">Close</a> -->
+	    </div>
+	    <div data-role="content" data-theme="d">
+	    	<fieldset data-role="controlgroup" data-iconpos="right" data-corners="false">
+	        <input name="serach_range" id="serach_range_a" value="500"  type="radio" checked="checked">
+	        <label for="serach_range_a">500米&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+
+	        <input name="serach_range" id="serach_range_b" value="1000" type="radio">
+	        <label for="serach_range_b">1000米</label>
+
+	        <input name="serach_range" id="serach_range_c" value="2000" type="radio">
+	        <label for="serach_range_c">2000米</label>
+
+	         <input name="serach_range" id="serach_range_d" value="3000" type="radio">
+	        <label for="serach_range_d">3000米</label>
+
+	         <input name="serach_range" id="serach_range_e" value="5000" type="radio">
+	        <label for="serach_range_e">5000米</label>
+
+	        <!-- <input name="serach_range" id="serach_range_d" value="view" type="radio">
+	        <label for="serach_range_d">当前范围</label>
+
+	        <input name="serach_range" id="serach_range_e" value="city" type="radio">
+	        <label for="serach_range_e">全市</label> -->
+    		</fieldset>
+	    </div>
+	</div>
+
+
+	<script type="text/javascript">
+		//此页面主要负责展现所有周边信息
+		//开始search
+		var map = null;            // 创建Map实例
+	
+		var mPoint = new BMap.Point(104.071373,30.666525);
+		var range_val = 500;
+		var local_search = null;
+		avalon.ready(function() {
+			var index_mod = per_model; //引用首页的模型
+			
+			
+		    
+		
+			
+
+		})
+
+		function search_again( point,rad){
+			// map = null;
+			// map = new BMap.Map("periphery_map");            // 创建Map实例
+			 
+			// map.enableScrollWheelZoom();
+			// map.centerAndZoom(mPoint,15);
+			map.clearOverlays();
+			setTimeout(function(){
+				console.log("1111");
+			},1000);
+			move_pos(point);
+			var circle = new BMap.Circle(point, rad,{fillColor:"blue", strokeWeight: 1 ,fillOpacity: 0.3, strokeOpacity: 0.3});
+			map.addOverlay(circle);
+			var bounds = getSquareBounds(circle.getCenter(),circle.getRadius());
+
+			local_search =  new BMap.LocalSearch(map, {renderOptions: {map: map, panel:"periphery_list", autoViewport: false} });  
+			
+			local_search.searchInBounds(select_keyword,bounds);
+			local_search.setSearchCompleteCallback(search_callback);
+			
+		}
+
+		function search_callback(res){
+			console.log(res );
+			console.log(local_search.getResults());
+		}
+
+
+		function move_pos(baidupoint){
+			curr_marker = null;
+	        var myIcon = new BMap.Icon("/css/images/bus_small.png", new BMap.Size(48,48));
+	      
+	        curr_marker = new BMap.Marker(baidupoint,{icon:myIcon});
+	        map.addOverlay(curr_marker);
+	        //curr_marker.setAnimation(BMAP_ANIMATION_BOUNCE); //跳动的动画
+	        curr_marker.setZIndex(999);
+        	//curr_marker.setAnimation(BMAP_ANIMATION_DROP);
+        
+        	var label = new BMap.Label("当前的位置",{offset:new BMap.Size(20,-10)});
+        
+	        label.setStyle({
+	                    borderColor:"black",
+	                    color:"#333",
+	                    backgroundColor:"yellow",
+	                    cursor:"pointer"
+	        });
+        	curr_marker.setLabel(label); //添加label
+        }
+
+		 /**
+		 * 得到圆的内接正方形bounds
+		 * @param {Point} centerPoi 圆形范围的圆心
+		 * @param {Number} r 圆形范围的半径
+		 * @return 无返回值   
+		 */ 
+		function getSquareBounds(centerPoi,r){
+		    var a = Math.sqrt(2) * r; //正方形边长
+		  
+		    mPoi = getMecator(centerPoi);
+		    var x0 = mPoi.x, y0 = mPoi.y;
+		 
+		    var x1 = x0 + a / 2 , y1 = y0 + a / 2;//东北点
+		    var x2 = x0 - a / 2 , y2 = y0 - a / 2;//西南点
+		    
+		    var ne = getPoi(new BMap.Pixel(x1, y1)), sw = getPoi(new BMap.Pixel(x2, y2));
+		    return new BMap.Bounds(sw, ne);        
+		    
+		}
+		//根据球面坐标获得平面坐标。
+		function getMecator(poi){
+		    return map.getMapType().getProjection().lngLatToPoint(poi);
+		}
+		//根据平面坐标获得球面坐标。
+		function getPoi(mecator){
+		    return map.getMapType().getProjection().pointToLngLat(mecator);
+		}
+
+		$("#show_preiphery_list").on('pageshow',function(event,ui){
+			  map = new BMap.Map("periphery_map");            // 创建Map实例
+	
+			map.enableScrollWheelZoom();
+			map.centerAndZoom(mPoint,15);
+			avalon.define("mod_per_list", function(vm) {
+				vm.list_keyword = select_keyword;
+				vm.map_active = false;
+				vm.list_active = true;
+				vm.cur_show = "列表";
+				vm.change_show = function(){
+					vm.map_active = !vm.map_active;
+					vm.list_active = !vm.list_active;
+					if(vm.map_active){
+						$(this).find('.ui-btn-text').html("列表");
+					}else{
+						$(this).find('.ui-btn-text').html("地图");
+					}
+				}
+		    });
+		    avalon.scan();
+		  
+		    //console.log(per_model.get_arr()[select_keyword_idx]);
+
+		    $("input[name=serach_range]").change(function() {
+		    	$('#menu_range').popup( "close" );
+		    	range_val = this.value;
+			  	console.log(range_val);
+			  	search_again(last_validate_loc, range_val);
+			});
+			search_again(last_validate_loc, range_val);
+		
+		});
+	</script>
+	</script>
+</div>

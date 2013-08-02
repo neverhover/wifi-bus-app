@@ -17,7 +17,10 @@
 	<script src="/js/mass_merge.js"></script>
 	<!-- MVVM框架,用于后续的list -->
 	<script src="/js/avalon_min.js"></script>
-	
+	<script type="text/javascript" src="http://api.map.baidu.com/api?v=1.5&amp;ak=43cfe61da7519c898a6951da09870b36"></script>
+    <script src="/js/convertor.js"></script>      <!-- 用于GPS转百度坐标-->
+    <script src="/js/position_cmp.js"></script>
+    <script src="/js/AreaRestriction.js"></script> <!--用于区域限制 -->
 </head>
 
 <body> 
@@ -37,25 +40,34 @@
 				<label for="line_direction"  class="select">行车方向选择</label>
 				<label for="line_direction" >百度数据中,使用上下行方向性来表示，而不使用去程和回程逻辑性的表述</label>
 				<select name="line_direction" id="line_direction" data-native-menu="false">
-				    <option value="1" selected="selected">去程--百度上行</option>
-				    <option value="2">回程--百度下行</option>
-				    <option value="3">环线--百度上行</option>
+				    <option value="1" selected="selected">去程--百度下行</option>
+				    <option value="2">回程--百度上行</option>
+				    <option value="3">环线--百度下行</option>
 				</select>
 				<label for="cur_info">线路:</label>
 				<span ms-html="set_name"></span>&nbsp;&nbsp;&nbsp;<span ms-html="dir_info"></span>
 				<br>
 
-				<label for="in_sta">回程:</label>
+				<label for="in_sta">设备回程:</label>
 				<span ms-html="in_sta"></span>
 				<br>
 
-				<label for="out_sta">去程:</label>
+				<label for="out_sta">设备去程:</label>
 				<span ms-html="out_sta"></span>
-				
+				<br>
+
+				<label for="baidu_a0_sta">百度下行:</label>
+				<span ms-html="baidu_a0_sta" id="baidu_a0_sta"></span>
+				<br>
+
+				<label for="baidu_a1_sta">百度上行:</label>
+				<span ms-html="baidu_a1_sta" id="baidu_a1_sta"></span>
+				<br>
 				<input type="hidden" id="cur_info" name="cur_info" ms-model="cur_info" style="display:none">
 				<input type="hidden" id="set_dir" ms-model="set_dir" style="display:none">
-				<input type="button" value="修改"  data-theme="b" ms-click="config_commit">
-				<input type="button" value="查看"  data-theme="b" ms-click="show_cur_info" id="show_info">
+				<input type="button" value="修改并存储到设备"  data-theme="b" ms-click="config_commit">
+				<input type="button" value="查询设备线路信息"  data-theme="b" ms-click="show_cur_info" id="show_info">
+				<input type="button" value="查询百度线路"  data-theme="b" ms-click="show_baidu_info" id="show_info">
 			</form>
 	</div>
 
@@ -64,13 +76,15 @@
 	</div>
 
 	<script type="text/javascript">
-		
+		var busline = null;
+		var model=null;
 		avalon.ready(function() {
-			 avalon.define("config_cur_line", function(vm) {
+			 model = avalon.define("config_cur_line", function(vm) {
 			 		vm.title="配置当前线路";
 			 		vm.set_name="";
 			 		vm.set_dir="";
 			 		vm.cur_info=[];
+			 		vm.baidu_a0_sta=vm.baidu_a1_sta="";
 			 		vm.line_company=vm.out_sta=vm.in_sta=vm.dir_info="";
 			 		vm.config_commit = function(){
 			      		//查询某一个站点的信息
@@ -125,6 +139,9 @@
 		      		vm.show_cur_info = function(){
 		      			vm.change_cur_info();
 		      		}
+		      		vm.show_baidu_info = function(){
+		      			get_bus_line(vm.set_name);
+		      		}
 		      		vm.change_vm = function(){
 		      			vm.line_company = vm.cur_info[0].line_company;
 		      			vm.in_sta = vm.cur_info[0].in_sta;
@@ -158,6 +175,25 @@
          		console.log($("#set_dir").val());
          	});
          });
+
+         function get_bus_line(busName){
+			busline  = new BMap.BusLineSearch("成都",{
+						onGetBusListComplete: function(result){
+							if(result) {
+								console.log(result);
+								if(result.Nm.length == 0){
+									model.baidu_a0_sta = model.baidu_a1_sta = "未找到该线路";
+								}else{
+									model.baidu_a0_sta=result.Nm[0].name;
+									model.baidu_a1_sta=result.Nm[1].name;
+								}
+								
+							}
+						}
+					});
+			busline.getBusList(busName);
+      	}
+   
 
 	</script>
 </div>

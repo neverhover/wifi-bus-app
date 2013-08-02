@@ -88,6 +88,7 @@
                 <option value="browser" selected>浏览器</option>
                 <option value="router">硬件设备</option>
             </select>
+            <br>
             <a href="#"  target="_blank" id="href_more_info" data-role="button" data-theme="e"  data-inline="true" data-mini="true">去百度查看</a>
             <a href="#demo-links" data-rel="close" data-role="button" data-theme="a" data-icon="delete" data-inline="true" data-mini="true">关闭面板</a>
         </div><!-- /content wrapper for padding -->
@@ -311,37 +312,46 @@ function set_bus_line(msg){
     renderOptions:{map:map,panel:"r-result"},
         onGetBusListComplete: function(result){
            if(result) {
-             var c_count = result.Nm.length;
-             var line_end,line_start;
-             
-             if(msg[0].line_type == ""){
-                    if(msg[0].cur_dec == 2){
-                        line_dir = 1;
-                    }else{
-                        line_dir = 0;
-                    }
-             }else{
-                    //for中是用来选择行车方向,以下是根据数据库来比对
-                    for(c_tmp =0; c_tmp<c_count;c_tmp++){
-                        var sp_arr = result.Nm[0].name.split("-");
-                        var bgn_sta = sp_arr[0].split("(")[1];
-                        var end_sta = sp_arr[1].split(")")[0];
-                        if(msg[0].cur_dec == 2){
-                            line_end =  msg[0].in_sta.split("--")[1];
-                            line_start = msg[0].in_sta.split("--")[0];
+                var c_count = result.Nm.length;
+                var line_end,line_start;
+                if(msg[0].cur_dec == 2){
+                    line_dir = 1;   //下行 0对应我们之前定义的out,环路也为out
+                }else{
+                    line_dir = 0;   //上行 1对应我们之前定义的in
+                }
+                if(result.Nm.length == 0){
+                    hide_left_panel_info();
+                    alert("未找到相关线路信息");
+                    return false;
+                }
+                 // if(msg[0].line_type == ""){
+                 //        if(msg[0].cur_dec == 2){
+                 //            line_dir = 1;
+                 //        }else{
+                 //            line_dir = 0;
+                 //        }
+                 // }else{
+                 //        //for中是用来选择行车方向,以下是根据数据库来比对
+                 //        for(c_tmp =0; c_tmp<c_count;c_tmp++){
+                 //            var sp_arr = result.Nm[0].name.split("-");
+                 //            var bgn_sta = sp_arr[0].split("(")[1];
+                 //            var end_sta = sp_arr[1].split(")")[0];
+                 //            if(msg[0].cur_dec == 2){
+                 //                line_end =  msg[0].in_sta.split("--")[1];
+                 //                line_start = msg[0].in_sta.split("--")[0];
 
-                        }else{
-                            line_end =  msg[0].out_sta.split("--")[1];
-                            line_start = msg[0].out_sta.split("--")[0];
-                        }
-                        // console.log(c_tmp + " "+ line_start +"-"+ line_end);
-                        // console.log(c_tmp + " "+ bgn_sta +"-"+ end_sta);
-                        if( (bgn_sta == line_start)|| (end_sta == line_end)){
-                            line_dir =  c_tmp;
-                            break;
-                        }
-                    }
-             }
+                 //            }else{
+                 //                line_end =  msg[0].out_sta.split("--")[1];
+                 //                line_start = msg[0].out_sta.split("--")[0];
+                 //            }
+                 //            // console.log(c_tmp + " "+ line_start +"-"+ line_end);
+                 //            // console.log(c_tmp + " "+ bgn_sta +"-"+ end_sta);
+                 //            if( (bgn_sta == line_start)|| (end_sta == line_end)){
+                 //                line_dir =  c_tmp;
+                 //                break;
+                 //            }
+                 //        }
+                 // }
             
             
              tmp_msg=result;
@@ -401,11 +411,16 @@ function set_bus_line(msg){
     });
 }
 
+function hide_left_panel_info(){
+    $("#line_bgn,#line_end,#sta_remind_label,#sta_remind,#line_time").hide();
+    $("#remind_status").slider( "disable" );;
+    $('#line_name').html("未找到相关线路信息");
+}
+
 //设置左边面板的值,同时初始化一次站点计算等
 function set_panel_info(msg){
-    if((msg == null) || (msg.length == 0)){
-        $("#line_bgn,#line_end,#sta_remind_label,#sta_remind,#line_time,#remind_status,#remind_status_label").hide();
-        $('#line_name').html("未设置行车信息");
+    if((tmp_msg == null) || (tmp_msg.length == 0) || (tmp_msg.Nm.length == 0)){
+       hide_left_panel_info();
     }
 
     var info = tmp_msg[line_dir];   //不同的方向，这里的索引也不同
@@ -502,8 +517,9 @@ translateCallback = function (point){
         if( sta_arr[cmp_sta].name == dst_sta){
             //提醒到达预定站点
             // $1.log("到达预定站点");
-            alert("到达预定站点"+dst_sta);
+            
             if(jQuery.inArray(dst_sta, passed_sta) == -1){
+                alert("到达预定站点"+dst_sta);
                 passed_sta.push(dst_sta);
             }
         }else{
@@ -557,7 +573,7 @@ function browser_locate_baidu(position){
           locate_tooltip_obj.html("浏览器定位失败");
           return false;
     }
-    console.log(position.point.lng+" "+ position.point.lat);
+    //console.log(position.point.lng+" "+ position.point.lat);
     locate_tooltip_obj.html("定位精度:"+position.accuracy+"米");
     //已经是转换后的百度Point
     translateCallback(position.point);
@@ -656,11 +672,11 @@ $(document).ready(function() {
         switch($(this).val()){
             case "browser":
                 locate_fun = getLocation_by_browser;
-		brower_geo_obj = new BMap.Geolocation();
+                brower_geo_obj = new BMap.Geolocation();
                 break;
             case "router":
                 locate_fun = getLocation_by_router;
-		brower_geo_obj = null;
+                brower_geo_obj = null;
                 break;
         }
     });

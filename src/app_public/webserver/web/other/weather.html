@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <title>实时公交</title> 
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/jquery.mobile.theme-1.3.1.min.css"/>
+    <link rel="stylesheet" href="/css/jquery.mobile-1.3.1.min.css" />
+    <link rel="stylesheet" href="/css/bus_style.css" type="text/css" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    
+    <style type="text/css">
+    #l-map{height:98%;width:98%;float:left;border-right:1px solid #bcbcbc;}
+    #r-result{height:100px;width:100px;margin:0; display: none; }
+    #content_div{
+        position: absolute;
+        width: 100%;
+        height: 350px;
+        height: calc(100% - 40px);
+        height: -moz-calc(100% - 90px);
+        height: -ms-calc(100% - 12px);
+        height: -webkit-calc(100% - 12px);
+        padding-top:5px;
+        padding-right:5px;
+        padding-left:5px;
+    }
+    
+    </style>
+
+    <script src="/js/jquery-1.10.1.min.js"></script>
+    <script src="/js/jquery.mobile-1.3.1.min.js"></script>
+
+    <!-- MVVM框架,用于后续的list -->
+    <script src="/js/avalon_min.js"></script>
+</head>
+
+<body> 
+
+<div data-role="page" id="index_app">
+    
+    <div data-role="header" data-position="fixed">
+        <a href="/index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade" data-rel="back">返回</a>
+        <h1>天气信息查询 <span class="ui-li-count">成都市</span></h1>
+    </div>
+
+    <div data-role="content" id="content_div">
+       
+        <div id="l-map"></div>
+       
+        <div id="r-result"></div>
+        
+    </div>
+
+    <div data-role="footer" data-position="fixed">
+        <a href="#leftpanel2" data-icon="bars" data-role="button" data-inline="true" data-mini="true">设置</a>
+        <a href="#" id="cur_position" data-icon="info" data-role="button" data-inline="true" data-mini="true">当前位置</a>
+        <span id="locate_tooltip"></span>
+    </div>
+
+    <!-- leftpanel2  -->
+    <div data-role="panel" id="leftpanel2" data-position="left" data-display="push" data-dismissible="true" data-theme="a">
+            
+        <div class="panel-content">
+            <h3 id="line_name"></h3>
+            <h5 id="line_bgn"></h5>
+            <h5 id="line_end"></h5>
+            <h5 id="line_time"></h5>
+
+            <label for="remind_status" id="remind_status_label">到站提醒</label>
+            <select name="remind_status" id="remind_status" data-role="slider" data-track-theme="c" data-theme="a">
+                <option value="off" selected>关闭</option>
+                <option value="on">开启</option>
+            </select>
+
+            <label for="sta_remind" id="sta_remind_label" class="select">提醒站点</label>
+            <select name="sta_remind" id="sta_remind" data-native-menu="false">
+            </select>
+            
+            <label for="locate_type" id="locate_type_label">定位方式</label>
+            <select name="locate_type" id="locate_type" data-native-menu="false" data-mini="true">
+                <option value="browser" selected>浏览器</option>
+                <option value="router">硬件设备</option>
+            </select>
+            <a href="#"  target="_blank" id="href_more_info" data-role="button" data-theme="e"  data-inline="true" data-mini="true">去百度查看</a>
+            <a href="#demo-links" data-rel="close" data-role="button" data-theme="a" data-icon="delete" data-inline="true" data-mini="true">关闭面板</a>
+        </div><!-- /content wrapper for padding -->
+            
+    </div><!-- /leftpanel2 -->
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+    $.ajax({
+             type: "get",
+             async: false,
+             url: "http://api.map.baidu.com/telematics/v3/weather?location=成都&output=json&ak=43cfe61da7519c898a6951da09870b36",
+             dataType: "json",
+             //自定义的jsonp回调函数名称，默认为jQuery自动生成的随机函数名，也可以写"?"，jQuery会自动为你处理数据
+             success: function(json){
+                 console.log(json);
+             },
+             error: function(json){
+                 console.log(json);
+             }
+    });
+
+   
+});
+</script>
+</div>
+
+</body>
+</html>
+

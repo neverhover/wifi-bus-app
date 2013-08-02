@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="utf-8">
+	<title>公交应用</title> 
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="/css/jquery.mobile.theme-1.3.1.min.css"/>
+	<link rel="stylesheet" href="/css/jquery.mobile-1.3.1.min.css" />
+	<link rel="stylesheet" href="/css/bus_style.css" type="text/css" />
+	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+	
+	<style type="text/css">
+ 
+    #periphery_map{height:100%;width:100%;float:left;border-right:1px solid #bcbcbc;}
+    #r-result{height:100px;width:100px;margin:0;}
+    #search_view{
+        position: absolute;
+        width: 100%;
+        height: 300px;
+        height: -webkit-calc(100% - 32px);
+        height: -moz-calc(100% - 90px);
+        height: -ms-calc(100% - 32px);
+        height: -o-calc(100% - 32px);
+        height: calc(100% - 90px);
+        padding-top:5px;
+    }
+    </style>
+
+	<script src="/js/jquery-1.10.1.min.js"></script>
+	<script src="/js/jquery.mobile-1.3.1.min.js"></script>
+	<script src="http://api.map.baidu.com/api?v=1.5&amp;ak=43cfe61da7519c898a6951da09870b36"></script>
+	 <!-- <script src="js/mass_min.js"></script> -->
+	<script src="/js/mass_merge.js"></script>
+	<!-- MVVM框架,用于后续的list -->
+	<script src="/js/avalon_min.js"></script>
+	<script src="/js/convertor.js"></script>      <!-- 用于GPS转百度坐标-->
+</head>
+
+<body> 
+
+<div data-role="page" id="index_app">
+	<div data-role="header" data-position="fixed">
+		<a href="/index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade">返回</a>
+		<h1>周边信息</h1>
+		<a href="#popup_manual" data-rel="popup" data-position-to="window" data-role="button" data-inline="true" data-icon="bars" data-theme="b" data-transition="pop">自定义</a>
+	</div>
+
+	
+	<div data-role="popup" id="popup_manual" data-theme="a" class="ui-corner-all" >
+			 <a href="#" data-rel="back" data-role="button" data-theme="a" data-icon="delete" data-iconpos="notext" class="ui-btn-left">Close</a>
+		    <div style="padding:10px 20px;">
+		        <h3>请输入查找关键字</h3>
+		        <label for="manual_key" class="ui-hidden-accessible">关键字</label>
+		        <input name="user" id="manual_key" value="" placeholder="关键字" data-theme="a" type="text">
+		        <br>
+		        <button id='btn_manual' data-theme="b" data-icon="check">确定</button>
+		    </div>
+		
+	</div>
+
+	<div  data-role="popup" id="popup_loc" data-overlay-theme="a" data-theme="c" class="ui-corner-all">
+		<div data-role="header" data-theme="a">
+	        <h1>定位方式</h1>
+	        <a href="#"  data-rel="back"  data-icon="delete" data-role="button" data-theme="b" data-inline="true" data-mini="true" data-iconpos="notext"></a>
+	    </div>
+	    <div data-role="content" data-theme="d">
+			<fieldset data-role="controlgroup" data-iconpos="right">
+
+		        <input name="locate_type" id="locate_type_a" value="browser" checked="checked" type="radio">
+		        <label for="locate_type_a">浏览器&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+
+		        <input name="locate_type" id="locate_type_b" value="router" type="radio">
+		        <label for="locate_type_b">硬件设备</label>
+
+		    </fieldset>
+	         <a href="#"  data-theme="b" data-icon="check" data-role="button" data-inline="true" data-rel="back" data-theme="c">确定</a>
+	     </div>
+	</div>
+	<div data-role="content" ms-controller="config_links" ms-each-sec="sec_arr">
+		<!--  <table data-role="table" id="movie-table" class="ui-responsive table-stroke">
+
+		 	<thead>
+					<tr>
+						<th data-priority="1" style="width:50%" text-align="right"></th>
+						<th data-priority="2" text-align="right"></th>
+					</tr>
+				</thead>
+		 	<tbody>
+		 	<tr>
+		 		<td style="width:50%"><input data-inline="true" /></td>
+		 		<td style="width:50%"><a data-role="button" data-inline="true">确定</a></td>
+		 	</tr>
+		 	</tbody>
+		 </table> -->
+		
+
+		<a ms-click='sim_click' ms-data-arr-idx="$index"><h2 ms-html='sec.sim'></h2></a>
+		<ul data-role="listview" data-inset="true" ms-each-li="sec.sub" ms-data-arr-idx="$index">
+				<li>
+					<a ms-click="obj_click" data-transition="slidefade" ms-data-href-key="li.keyword">{{li.label}}</a>
+				</li>
+
+		</ul>
+		<!-- <div data-role="collapsible" data-theme="b" data-content-theme="d" data-inset="false" ms-controller="config_links" ms-each-sec="sec_arr">
+		    <h3>Pets</h3>
+		    <ul data-role="listview">
+		        <li><a href="#">Canary</a></li>
+		        <li><a href="#">Cat</a></li>
+		        <li><a href="#">Dog</a></li>
+		        <li><a href="#">Gerbil</a></li>
+		        <li><a href="#">Iguana</a></li>
+		        <li><a href="#">Mouse</a></li>
+		    </ul>
+		</div> -->
+		<!-- <div data-role="collapsible-set" data-theme="c" data-content-theme="b" data-iconpos="right" ms-controller="config_links" ms-each-sec="sec_arr">
+		    <div data-role="collapsible" ms-each-li="sec">
+		        <a  ms-click="obj_click" data-transition="slidefade" ms-data-href-key="li.keyword">
+				<h3>{{li.label}}</h3>
+				</a>
+		    </div>
+		</div> -->
+	</div>
+
+	<!-- <div data-role="content"  ms-controller="config_links" ms-each-sec="sec_arr">
+		<section class="gallery" ms-data-arr-idx="$index">
+		    <ul class="gallery-entries clearfix" ms-each-li="sec">	
+		
+				<li class="gallery-item">
+					<a  ms-click="obj_click" data-transition="slidefade" ms-data-href-key="li.keyword"><img src="/css/images/bus_small.png"/>
+					<h3>{{li.label}}</h3>
+					</a>
+				</li>
+		</section>
+	</div> -->
+
+	<div data-role="footer" data-position="fixed">
+		<a href="#popup_loc" data-rel="popup" data-position-to="window" data-role="button" data-inline="true" data-icon="bars" data-theme="b" data-transition="pop">定位方式</a>
+		<span id="locate_tooltip_obj">&nbsp;</span>
+	</div>
+
+	<script type="text/javascript">
+		var select_keyword="",
+			select_keyword_arr=[]
+			select_keyword_idx=0;
+		var per_model=null,
+			locate_tooltip_obj = null;
+		var brower_geo_obj = new BMap.Geolocation();
+		var gc = new BMap.Geocoder();   //当前位置解析
+		var locate_fun = browser_locate_now;
+		var last_validate_loc="",
+			timer_num = 0,
+			pos_str = "";
+		avalon.ready(function() {
+			 var food ={sim:'美食',keyword:'美食',sub:[
+			 			 {label:'小吃快餐',keyword:'小吃'}
+			 			,{label:'中餐',keyword:'中餐'}
+			 			,{label:'西餐',keyword:'西餐'}
+			 			,{label:'外卖',keyword:'外卖'}
+			 			,{label:'火锅',keyword:'火锅'}
+			 			,{label:'串串',keyword:'串串'}
+			 		]};
+			 var hotel ={sim:'酒店',keyword:'酒店',sub:[
+			 			 {label:'旅馆',keyword:'宾馆'}
+			 			,{label:'快捷酒店',keyword:'快捷酒店'}
+			 			,{label:'星级酒店',keyword:'星级酒店'}
+			 			,{label:'青年旅社',keyword:'青年旅社'}
+			 			,{label:'招待所',keyword:'招待所'}
+			 		]};
+			 var happy ={sim:'娱乐',keyword:'娱乐',sub:[
+			 			 {label:'电影院',keyword:'电影院'}
+			 			,{label:'KTV',keyword:'KTV'}
+			 			,{label:'网吧',keyword:'网吧'}
+			 			,{label:'咖啡厅',keyword:'咖啡'}
+			 			,{label:'商场',keyword:'商场'}
+			 		]};
+			 var tra ={sim:'交通',keyword:'交通',sub:[
+			 			 {label:'公交站',keyword:'公交站'}
+			 			,{label:'地铁站',keyword:'地铁站'}
+			 			,{label:'火车站',keyword:'火车站'}
+			 			,{label:'加油站',keyword:'加油站'}
+			 			,{label:'加气站',keyword:'加气站'}
+			 			,{label:'停车场',keyword:'停车场'}
+			 			,{label:'长途汽车站',keyword:'长途汽车站'}
+			 			,{label:'火车票代售点',keyword:'火车票代售'}
+			 		]};
+			 var live ={sim:'生活服务',keyword:'生活服务',sub:[
+			 			 {label:'超市',keyword:'超市'}
+			 			,{label:'团购',keyword:'团购'}
+			 			,{label:'医院',keyword:'医院'}
+			 			,{label:'药店',keyword:'药店'}
+			 			,{label:'银行',keyword:'银行'}
+			 			,{label:'ATM',keyword:'ATM'}
+			 			,{label:'厕所',keyword:'厕所'}
+			 		]};
+			 //定义页面数组
+			 var total_arr = [];
+			 total_arr.push(food);
+			 total_arr.push(hotel);
+			 total_arr.push(happy);
+			 total_arr.push(tra);
+			 total_arr.push(live);
+			 per_model = avalon.define("config_links", function(vm) {
+
+					 		vm.list_href='show_list.html';
+					 		vm.sec_arr = total_arr;
+					 		vm.obj_click = function(){
+					 			if(!check_loaction()){
+					 				return false;
+					 			}
+					 			select_keyword = $(this).data('href-key');
+					 			//console.log(select_keyword);
+					 			select_keyword_idx = parseInt($(this).parents("ul").data('arr-idx'));//存储当前选择的数组索引
+					 			//console.log(select_keyword_idx);
+					 		
+					 			$('#show_preiphery_list').remove();
+					 			jQuery.mobile.changePage("/periphery/show_list.html",{reloadPage:true});
+					 			return false;
+					 		}
+					 		vm.sim_click = function(){
+					 			if(!check_loaction()){
+					 				return false;
+					 			}
+					 			
+					 			select_keyword_idx = parseInt($(this).data('arr-idx'));//存储当前选择的数组索引
+					 			console.log(select_keyword_idx);
+					 			select_keyword_arr = [];
+					 			$.each(vm.sec_arr[select_keyword_idx].sub,function(idx,row){
+					 				select_keyword_arr.push(row.keyword);
+					 			});
+					 			select_keyword = vm.sec_arr[select_keyword_idx].keyword;
+					 			console.log(select_keyword);
+					 			$('#show_preiphery_list').remove();
+					 			jQuery.mobile.changePage("/periphery/show_list.html",{reloadPage:true});
+					 		}
+					 		vm.get_arr = function(){
+					 			return vm.sec_arr.$json;
+					 		}
+			 });
+			 //渲染页面
+			 avalon.scan();
+			 //console.log(per_model.get_arr());
+			 //console.log(per_model.$json.sec_arr);
+			 locate_tooltip_obj = $("#locate_tooltip_obj");
+
+			 switch( $("input[name=locate_type]").val()){
+	            case "browser":
+	                locate_fun = browser_locate_now;
+	                brower_geo_obj = new BMap.Geolocation();
+	                break;
+	            case "router":
+	                locate_fun = getLocation_by_router_now;
+	                break;
+			 }
+
+			 timer_num=self.setInterval("locate_fun()",3000);
+
+			 $('#btn_manual').click(function(){
+			 	if(!check_loaction()){
+	 				return false;
+	 			}
+	 			var m_val = $('#manual_key').val();
+	 			if(!m_val){
+	 				return false;
+	 			}
+	 			select_keyword = m_val;
+	 			$('#show_preiphery_list').remove();
+				jQuery.mobile.changePage("/periphery/show_list.html",{reloadPage:true});
+			 });
+		});
+
+		function check_loaction(){
+			if(last_validate_loc instanceof Object){
+				return true;
+ 			}else{
+ 				alert("未获得当前坐标");
+ 				return false;
+ 			}
+		}
+		function browser_locate_now(){
+			if(navigator.geolocation){
+		        
+				locate_tooltip_obj.html("定位中....");
+				//navigator.geolocation.getCurrentPosition(browser_locate,browser_locate_error);
+				if(brower_geo_obj !=null){
+					brower_geo_obj.getCurrentPosition(browser_locate_baidu,{enableHighAccuracy:true,timeout:6000});
+				}
+		    }else{
+		        //alert("浏览器不支持定位");
+		        locate_tooltip_obj.html("浏览器不支持定位");
+		    }
+			
+		}
+		function browser_locate_baidu(position){
+		
+			if(position == null){
+				locate_tooltip_obj.html("浏览器定位失败.");
+				return false;
+			}
+			if(brower_geo_obj.getStatus() != BMAP_STATUS_SUCCESS){
+				locate_tooltip_obj.html("浏览器定位失败");
+				return false;
+			}
+			console.log(position.point.lng+" "+ position.point.lat);
+			locate_tooltip_obj.html("定位精度:"+position.accuracy+"米");
+			//如果成功了则使用当前坐标作为起点查询，这样会快很多
+			last_validate_loc = position.point;
+			//这里作为起点查询
+			//已经是转换后的百度Point
+			// gc.getLocation(position.point, function(rs){
+			//     $1.log(rs.address + "" + rs.point.lng+ " "+ rs.point.lat);
+			//     if(rs == null || rs.address == undefined){
+			//         return false;
+			//     }
+			//     var addComp = rs.addressComponents;
+			//     // alert(addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber +","+rs.business);
+			//     // "  商圈: "+rs.business
+			//    pos_str = ""+addComp.city+addComp.district+addComp.street+addComp.streetNumber;
+			//    //$("#last_loc").html(pos_str);
+			// });
+		}
+
+		//通过路由器来定位,路由器内部每隔几秒会保存当前的坐标到系统内存中,好处是,可以保存行车路径
+		function getLocation_by_router_now(){
+
+		    $.ajax({
+		        type: 'GET',
+		        url:"/action/bus_realtime",
+		        data: {"rq_type":"gps_point","act":"get"},
+		        cache: false,
+		        beforeSend:function(){
+		            // $.mobile.showPageLoadingMsg();
+		            locate_tooltip_obj.html("定位中....");
+		        },
+		        success:function(msg){
+		            msg = eval("(" + msg + ")");
+		            if(msg.length ==0){
+		                //等待下一次
+		            }else{
+		                //转换坐标并移动
+		                //样式 msg={"lng":104.332345, "lat": 30.11111};
+		                //console.log(gps_point);
+		                trans_cordinate_now(msg[0]);
+		            }
+		        },
+		        complete:function(){
+		            // Hide loading message
+		            // $.mobile.hidePageLoadingMsg();
+		            locate_tooltip_obj.html("");
+		        }
+		    });
+		}
+		function trans_cordinate_now(gps_point){
+
+		    var baidu_point = null;
+		   
+		    if((gps_point == null) || (gps_point.length == 0)){
+		        return false;
+		    }
+		    //防止其他意外情况
+		    try{
+		        if(gps_point.lng){}
+		    }catch(e){
+		        return false;
+		    }
+		   
+		    baidu_point= new BMap.Point(gps_point.lng, gps_point.lat);
+		  
+		    BMap.Convertor.translate(baidu_point,0,function(trans_point){
+		    	last_validate_loc = trans_point;
+		    });
+		}
+
+		//定位方式
+	    $("input[name=locate_type]").change(function(){
+	    	locate_fun = null;
+	    	brower_geo_obj = null;
+	        switch($(this).val()){
+	            case "browser":
+	                locate_fun = browser_locate_now;
+	                brower_geo_obj = new BMap.Geolocation();
+	                break;
+	            case "router":
+	                locate_fun = getLocation_by_router_now;	            
+	                break;
+	        }
+	    });
+	</script>
+</div>
+
+</body>
+</html>
+

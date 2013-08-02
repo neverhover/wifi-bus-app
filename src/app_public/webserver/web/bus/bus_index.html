@@ -1,7 +1,7 @@
 <div data-role="page" id="index_bus" data-title="实时公交 成都市">
 	<div data-role="header" data-position="fixed">
 		<a href="/index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade">返回</a>
-		<h1>实时公交··成都市</h1>
+		<h1>公交查询  成都市</h1>
 		<div data-role="navbar" >
 		    <ul ms-controller="mod_bus_search" ms-each-li="rows">
 		        <li>
@@ -36,11 +36,11 @@
 					</ul>
 				</div>
 
-				<div ms-visible="rows[2].active">
+				<!-- <div ms-visible="rows[2].active">
 					<input type="text" name="bus_start_point" id="bus_start_point" placeholder="请输入起点" ms-model="s_point" >
 					<input type="text" name="bus_end_point" id="bus_end_point" placeholder="请输入终点" ms-model="e_point">
 					<a href="#" data-role="button" data-icon="refresh" data-iconpos="right" data-mini="true" data-theme="e" ms-click="ride_switch">切换</a>
-				</div>
+				</div> -->
 				<input type="hidden" name="search_type" ms-model="search_type">
 				<!-- <a href="bus_dialog.html" data-role="button" data-inline="true" data-rel="dialog" data-transition="slidefade" style="display:none;">Open dialog</a> -->
 				<a id="search_btn" href="bus_line.html" data-role="button" data-inline="true" data-transition="slidefade" style="display:none;">查询</a>
@@ -133,8 +133,8 @@
 		    avalon.define("mod_bus_search", function(vm) {
 		       vm.rows=[
 		       	{name:"线路查询",ids:"type_line",active:false},
-		       	{name:"站点查询",ids:"type_sta",active:true},
-		       	{name:"换乘方案",ids:"type_ride",active:false}
+		       	{name:"站点查询",ids:"type_sta",active:true}
+		       	// ,{name:"换乘方案",ids:"type_ride",active:false}
 		       ];
 		       vm.search_line_vec=vm.search_sta_vec=[];
 		       vm.search_type = vm.rows[1].ids;

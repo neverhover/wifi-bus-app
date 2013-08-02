@@ -38,11 +38,11 @@
     // <script src="/js/AreaRestriction.js"></script> -->
 <!-- </head> -->
 
-<div data-role="page" id="bus_line" data-title="线路详情" ms-controller="mod_ride_result" data-dom-cache="false">
+<div data-role="page" id="ride_result" data-title="换乘方案" ms-controller="mod_ride_result" data-dom-cache="false">
 	<div data-role="header" data-position="fixed">
 		<a href="/realtime/bus_ride.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade" data-rel="back">返回</a>
 		<h1 ms-html="title"></h1>
-		<!-- <a href="#rightpanel" data-icon="gear" data-role="button" data-theme="b" data-inline="true" data-mini="true">配置</a> -->
+		<a href="#rightpanel" data-icon="gear" data-role="button" data-theme="b" data-inline="true" data-mini="true">起点终点选择</a>
 	</div>
 
 
@@ -59,25 +59,27 @@
 
 	
 
-    <!-- <div data-role="panel" id="rightpanel" data-position="right" data-display="push" data-theme="b">
-
+     <div data-role="panel" id="rightpanel" data-position="right" data-display="push" data-theme="b">
         <div>
-			<input type="text" name="bus_start_point" id="bus_start_point" placeholder="请输入起点"  >
-			<input type="text" name="bus_end_point" id="bus_end_point" placeholder="请输入终点">
-			<a href="#" id="refresh_point" data-role="button" data-icon="refresh" data-iconpos="right" data-mini="true" data-theme="e" >切换</a>
-			<a id="search_btn" href="bus_line.html" data-role="button" data-inline="true" data-transition="slidefade" style="display:none;">查询</a>
-			<input type="button" value="查询"  data-theme="b" id="bus_commit">
+			<div data-role="fieldcontain">
+				<label for="new_start_point">选择起点</label>
+				<div id="new_start_point" style="height:120px;overflow-y:scroll;overflow-x:auto;color:black;text-shadow:  0 0px 0px #000000;"></div>
+			</div>
+			<div data-role="fieldcontain">
+				<label for="new_end_point">选择终点</label>
+				<div id="new_end_point" style="height:120px;overflow-y:scroll;overflow-x:auto;color:black;text-shadow:  0 0px 0px #000000;"></div>
+			</div>
 		</div>
-        <a href="#demo-links" data-rel="close" data-role="button" data-theme="c" data-icon="delete" data-inline="true">关闭面板</a>
-        
-	</div> --><!-- rightpanel -->
+		<a id="re_search_btn" data-role="button" data-theme="a"  data-inline="true" data-mini="true">确定并查询</a>
+        <a href="#demo-links" data-rel="close" data-role="button" data-theme="c" data-icon="delete" data-inline="true" data-mini="true">关闭面板</a>    
+	</div>
 
 	<!-- leftpanel2  -->
     <div data-role="panel" id="leftpanel2" data-position="left" data-display="push" data-dismissible="true" data-theme="a">
             
         <div class="panel-content">
-            <h5 id="line_start"></h5>
-            <h5 id="line_end"></h5>
+            <h5>从:<span id="line_start"></span></h5>
+            <h5>到:<span id="line_end"></span></h5>
             <a href="#" data-role="button" data-icon="refresh" data-inline="true" data-mini="true" id="change_point">查看返程</a>
             <input type="hidden" ms-model="cur_chose" id="travel_chose">
             <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
@@ -148,24 +150,24 @@
 	        <table data-role="table" id="movie-table" data-mode="reflow" class="ui-responsive table-stroke">
 				<thead>
 					<tr>
-						<th data-priority="1" style="text-align:center">描述</th>
-						<th data-priority="persist" style="text-align:center">起步价(元)</th>
-						<th data-priority="2" style="text-align:center">单价(元/公里)</th>
-						<th data-priority="3" style="text-align:center">总费用(元)</th>
+						<th data-priority="1" text-align="right">描述</th>
+						<th data-priority="persist" text-align="right">起步价(元)</th>
+						<th data-priority="2" text-align="right">单价(元/公里)</th>
+						<th data-priority="3" text-align="right">总费用(元)</th>
 					</tr>
 				</thead>
 				<tbody>
 					<tr>
-						<td style="text-align:center">白天(06:00-23:00)</td>
-						<td style="text-align:center">{{taxi_f.day.initialFare}}</td>
-						<td style="text-align:center">{{taxi_f.day.unitFare}}</td>
-						<td style="text-align:center">{{taxi_f.day.totalFare}}</td>
+						<td text-align="right">白天(06:00-23:00)</td>
+						<td text-align="right">{{taxi_f.day.initialFare}}</td>
+						<td text-align="right">{{taxi_f.day.unitFare}}</td>
+						<td text-align="right">{{taxi_f.day.totalFare}}</td>
 					</tr>
 					<tr>
-						<td style="text-align:center">夜晚(23:00-06:00)</td>
-						<td style="text-align:center">{{taxi_f.night.initialFare}}</td>
-						<td style="text-align:center">{{taxi_f.night.unitFare}}</td>
-						<td style="text-align:center">{{taxi_f.night.totalFare}}</td>
+						<td text-align="right">夜晚(23:00-06:00)</td>
+						<td text-align="right">{{taxi_f.night.initialFare}}</td>
+						<td text-align="right">{{taxi_f.night.unitFare}}</td>
+						<td text-align="right">{{taxi_f.night.totalFare}}</td>
 					</tr>
 				</tbody>
 	        </table>
@@ -177,25 +179,34 @@
 		// var end_point = "火车东站";
 		var start_point = window.ride_param.bgn_point;
 		var end_point = window.ride_param.end_point;
-		var map = new BMap.Map("l-map");            // 创建Map实例
-		map.centerAndZoom("成都", 12);
-		var bus_transit = null;
-		var drive_transit =null;
-		var walk_transit = null;
+		var bak_start_point = start_point;
+		var bak_end_point = end_point;
+		//var pos_str = "";
+		var map = null;
+		var bus_transit = null,
+			drive_transit =null,
+			walk_transit = null;
+		
 		var way_arr= [
 			{"obj":bus_transit, "func": rebuild_bus_way, last_pol:0},
 			{"obj":drive_transit, "func": rebuild_drv_way,last_pol:0},
-			{"obj":walk_transit, "func": rebuild_walk_way,last_pol:0}, , 
+			{"obj":walk_transit, "func": rebuild_walk_way,last_pol:0},
 		];
-		var last_travel_way = -1;
-		//console.log("11111" + window.ride_param.bgn_point +" " + window.ride_param.end_point);
-		
+		var last_travel_way = -1,	//上一次选择的方式，避免重复选择
+			need_refresh = false,	//是否需要刷新
+			reselect_point_flag =false;
+		var gc2 = new BMap.Geocoder();   //当前位置解析
+
+		//重新初始化地图
 		function init_map(){
 			map = null;
 			$('#l-map').html();
 			map = new BMap.Map("l-map");            // 创建Map实例
-			map.centerAndZoom(new BMap.Point(104.067923,30.679943), 12);
+			map.enableScrollWheelZoom();
+			//不能使用"成都"来作为中心点,似乎是一个BUG
+			map.centerAndZoom(new BMap.Point(104.071373,30.666525), 12);
 		}
+		//重新计算公交结果
 		function rebuild_bus_way(){
 			var spol = parseInt($("input[name='bus_way']:checked").val());
 			var tool = $("input[name='way_tools']:checked").val();
@@ -228,11 +239,13 @@
 			
 			bus_transit = null;
 			bus_transit = new BMap.TransitRoute(map, {
-				renderOptions: {map: map,panel:"result_bus_div"},
+				renderOptions: {map: map,panel:"result_bus_div",autoViewport:true},
 				policy: pol
 			});
 			bus_transit.search(start_point, end_point);
+			bus_transit.setSearchCompleteCallback(transit_callback);
 		}
+		//重新计算驾车结果
 		function rebuild_drv_way(){
 
 			var spol = parseInt($("input[name='drv_way']:checked").val());
@@ -252,14 +265,16 @@
 			// console.log("we chose : " + pol);
 			drive_transit = null;
 			drive_transit = new BMap.DrivingRoute(map, {
-				renderOptions: {map: map,panel:"result_drive_div"},
+				renderOptions: {map: map,panel:"result_drive_div",autoViewport:true},
 				policy: pol
 			});
 			//(按驾车的最短路程计算)
 			model.taxi_type = model.drv_text[spol];
 			drive_transit.setSearchCompleteCallback(render_drv_ret);
 			drive_transit.search(start_point, end_point);
+			drive_transit.setSearchCompleteCallback(transit_callback);
 		}
+		//驾车taxi的结果
 		function render_drv_ret(dr_ret){
 
 			if(dr_ret == null){
@@ -271,6 +286,7 @@
 				// console.log(dr_ret);
 			}
 		}
+		//重新计算taxi费用
 		function rebuild_taxi_ret(){
 			drive_transit = null;
 			drive_transit = new BMap.DrivingRoute(map, {
@@ -281,19 +297,83 @@
 			drive_transit.search(start_point, end_point);
 		}
 
+		//重新计算步行的结果
 		function rebuild_walk_way(){
 			walk_transit = null;
 			walk_transit = new BMap.WalkingRoute(map, {
-			renderOptions: {map: map,panel:"result_walk_div"},
+			renderOptions: {map: map,panel:"result_walk_div",autoViewport:true},
 			policy:
 					BMAP_DRIVING_POLICY_LEAST_TIME	//最少时间。
 				// BMAP_DRIVING_POLICY_LEAST_DISTANCE	//最短距离。
 				// BMAP_DRIVING_POLICY_AVOID_HIGHWAYS	//避开高速。
 			});
 			walk_transit.search(start_point, end_point);
-			
+			walk_transit.setSearchCompleteCallback(transit_callback);
 		}
-		
+		//重选处理
+		function reselect_point(){
+			if(reselect_point_flag){
+				//已经渲染过了
+				return false;
+			}
+			if(bak_start_point instanceof Object){
+				//不需要选择;
+			}else{
+				
+				//没有去渲染地图marker的原因是流量问题
+	            var local = new BMap.LocalSearch(map,
+	                {renderOptions:{map: null,panel:"new_start_point"},
+	                onSearchComplete: function(r){
+	                    //console.log(r);
+	                },
+	                onResultsHtmlSet: function(){
+	                    var tmp =  $("#new_start_point li:first div span:first").html();
+	                    start_point = tmp.split("-公交车站")[0];
+
+	                    $("#new_start_point li").on('click',function(){
+							start_point=$(this).find("div span:first").html();
+							start_point = start_point.split("-公交车站")[0];
+						});
+						reselect_point_flag = true;
+	                }
+	            });
+	            local.search(bak_start_point);
+			}
+			if(bak_end_point instanceof Object){
+				//不需要选择;
+			}else{
+				//没有去渲染地图marker的原因是流量问题
+	            var local = new BMap.LocalSearch(map,
+	                {renderOptions:{map:null,panel:"new_end_point"},
+	                onSearchComplete: function(r){ 
+	                    //console.log(r);
+	                },
+	                onResultsHtmlSet: function(){
+	                    
+	                    var tmp =  $("#new_end_point li:first div span:first").html();
+	                    end_point = tmp.split("-公交车站")[0];
+
+	                    $("#new_end_point li").on('click',function(){
+							end_point=$(this).find("div span:first").html();
+							end_point = end_point.split("-公交车站")[0];
+						});
+						reselect_point_flag = true;
+	                }
+	            });
+	            local.search(bak_end_point);
+			}
+		}
+		//换乘的回调
+		function transit_callback(res){
+			if(!res.getNumPlans()){
+				//没有找到方案,那么搜索附近
+				alert("没有找到方案，请选择准确的起点或终点");
+				reselect_point(); 
+			}else{
+				reselect_point();
+			}
+			console.log(res.getNumPlans());
+		}
 		var model=null;
 		avalon.ready(function() {
 			 model = avalon.define("mod_ride_result", function(vm) {
@@ -326,14 +406,17 @@
 		       		});
 			 	})
 			 });
-			  avalon.scan();
-			  $('#way_bus').click();
+			avalon.scan();
+			// init_point_info();
+			// init_map();
+			// $('#way_bus').click();
 		});
 		$('#way_bus,#way_walk,#way_drv').click(function(){
 			console.log("clicked");
 			model.cur_chose = parseInt(this.value);
 			
-			if(model.cur_chose != last_travel_way){
+			if( (model.cur_chose != last_travel_way) || need_refresh){
+				need_refresh = false;
 				init_map();
 				way_arr[model.cur_chose].func();
 				last_travel_way = model.cur_chose;
@@ -341,6 +424,7 @@
 					//公交的时候,计算taxi价格
 					rebuild_taxi_ret();
 				}
+
 			}
 		});
 		
@@ -352,17 +436,61 @@
 				way_arr[model.cur_chose].last_pol = parseInt(this.value);
 			}
 		});
-		$("#line_start").html("从:"+start_point);
-		$("#line_end").html("到:"+end_point);
-
+		//初始化起点和终点信息
+		function init_point_info(){
+			// //已经是转换后的百度Point
+			
+			if(start_point instanceof Object){
+				//$("#line_start").html("从:"+ "当前位置");
+				point_to_str(start_point,$("#line_start"));
+			}else{
+				$("#line_start").html(start_point);
+			}
+			if(end_point instanceof Object){
+				//$("#line_end").html("到:"+ "当前位置");
+				point_to_str(end_point,$("#line_end"));
+			}else{
+				$("#line_end").html(end_point);
+			}
+			
+		}
+		//坐标转换为名字
+		function point_to_str(pos,obj){
+			if(pos_str !=""){
+				obj.html(pos_str);
+			}else{
+				gc2.getLocation(pos, function(rs){
+				$1.log(rs.address + "" + rs.point.lng+ " "+ rs.point.lat);
+				    //last_validate_loc = rs.address;
+				    if(rs == null || rs.address == undefined){
+				        return false;
+				    }
+				    var addComp = rs.addressComponents;
+				    // alert(addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber +","+rs.business);
+				    // "  商圈: "+rs.business
+				   pos_str = ""+addComp.city+addComp.district+addComp.street+addComp.streetNumber;
+				   obj.html(pos_str);
+				});
+			}
+			
+		}
+		
+		//复位所有的,针对于后退操作
+		function reset_all(){
+			last_travel_way = -1,	//上一次选择的方式，避免重复选择
+			need_refresh = false,	//是否需要刷新
+			reselect_point_flag =false;
+			pos_str="";
+		}
+		
+		//事件处理
 		$("#change_point").click(function(){
 			var tmp = start_point;
 			start_point = end_point;
 			end_point = tmp;
 			tmp = null;
 			//重新计算
-			$("#line_start").html("从: "+start_point);
-			$("#line_end").html("到: "+end_point);
+			init_point_info();
 			init_map();
 			way_arr[model.cur_chose].func();
 			last_travel_way = model.cur_chose;
@@ -372,41 +500,27 @@
 			}
 			
 		});
-		$(document).ready(function($) {
+		$("#re_search_btn").click(function(){
+			console.log(start_point+","+end_point);
+			$("#rightpanel").panel( "close" );
+			init_point_info();
+			init_map();
+			need_refresh = true;
 			$('#way_bus').click();
 		});
-		// //交换源目
-		// $("#refresh_point").click(function(){
-		// 	var tmp = $('#bus_start_point').val();
-		// 	$('#bus_start_point').val($('#bus_end_point').val());
-		// 	$('#bus_end_point').val(tmp);
-		// 	start_p.hide();
-		// 	end_p.hide();
-		// });
-		// //确定查询
-		// $("#bus_commit").click(function(){
-		// 	var bgn_point2 = $('#bus_start_point').val();
-		// 	var end_point2 =  $('#bus_end_point').val();
-		// 	if( bgn_point2 &&  end_point2){
-		// 		window.ride_param = [];
-		// 		window.ride_param.bgn_point2= bgn_point2;
-		// 		window.ride_param.end_point2= end_point2;
-		// 		$('#search_btn').attr("href","ride_result.html");
-		// 		$('#search_btn').trigger('click');
-		// 	}
+
+		$("#ride_result").on('pageshow',function(event,ui){
+			reset_all();
+			reselect_point();
+			init_point_info();
+			init_map();
+			setTimeout(function(){
+				$('#way_bus').click();
+			},3000);
 			
-		// });
-		// //右边panel的内容初始化 
-		// var start_p = new BMap.Autocomplete({    //建立一个自动完成的对象
-		// 	"input" : "bus_start_point",
-		// 	"location": map
-		// });
 		
-		// var end_p = new BMap.Autocomplete({   //建立一个自动完成的对象
-		// 	"input" : "bus_end_point",
-		// 	"location": map
-		// });
-		
+		});
+
 	</script>
 </div>
 <!-- </html> -->
