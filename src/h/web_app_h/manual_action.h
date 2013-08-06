@@ -21,7 +21,9 @@ PUBLIC void action_bus_config_process(Webs *wp, char *path, char *query);
 /*
  * @Brief help process
  */
-PUBLIC void action_help_process(Webs *wp, char *path, char *query);
+PUBLIC void action_bus_help_process(Webs *wp, char *path, char *query);
+
+PUBLIC void action_bus_web_uri_process(Webs *wp, char *path, char *query);
 
 
 #endif

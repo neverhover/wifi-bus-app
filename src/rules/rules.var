@@ -1,20 +1,20 @@
 ifeq ($(LT_ARCH),PL_RALINK)	
 	CC    = mipsel-linux-cc
 	AR    = mipsel-linux-ar
-	CFLAGS   = -c -O2 -DMIPSEL -mips3 -D__LITTLE_ENDIAN__ -D__ralink__
+	CFLAGS   = -c -O2 -DMIPSEL -mips3 -D__LITTLE_ENDIAN__ -D__ralink__ -D_LINUX
 	SRC_PREFIX = src
 	H_PREFIX = h
 else
 ifeq ($(LT_ARCH),PL_OCTEON)	
 	CC    = mips64-octeon-linux-gnu-gcc
 	AR    = mips64-octeon-linux-gnu-ar
-	CFLAGS = -c -O2 -D__MIPS__ -msoft-float -D__MIPS64__ -EB -D__BIG_ENDIAN__ -D__octeon__ -Dstrlcpy=strncpy
+	CFLAGS = -c -O2 -D__MIPS__ -msoft-float -D__MIPS64__ -EB -D__BIG_ENDIAN__ -D__octeon__ -Dstrlcpy=strncpy -D_LINUX
 	SRC_PREFIX = src
 	H_PREFIX = h
 else
 	CC    = gcc
 	AR    = ar
-	CFLAGS   = -c -O2 -D__LITTLE_ENDIAN__
+	CFLAGS   = -c -O2 -D__LITTLE_ENDIAN__ -D_LINUX
 endif
 endif
 OBJ_DIR=$(ARCH_NAME)/o

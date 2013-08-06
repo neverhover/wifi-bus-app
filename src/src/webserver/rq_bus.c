@@ -261,32 +261,32 @@ PRIVATE int get_line_info_from_db(char *name , char **pstr){
 	json_object_array_add(outer_arr, new_obj);
 	
 	WEB_STRACE("%s\n",json_object_to_json_string(outer_arr));
-	WEB_STRACE();
+	
 	tmp_str = json_object_to_json_string(outer_arr);
-	WEB_STRACE();
+	
 	ret = strlen(tmp_str);
-	WEB_STRACE();
+	
 	*pstr = calloc( ret+1, sizeof(char) );
-	WEB_STRACE();
+	
 	p_pstr = *pstr;
-	WEB_STRACE();
+	
 	if(*pstr == NULL){
-		WEB_STRACE();
+		
 		ret = RET_ERROR;
 	}else{
-		WEB_STRACE();
+		
 		memcpy(*pstr, tmp_str, ret);
-		WEB_STRACE();
+		
 		p_pstr[ret]= '\0';
-		WEB_STRACE();
+		
 	}
-	WEB_STRACE();
+	
 	json_object_put(new_obj);
-	WEB_STRACE();
+	
 	db_free(info);
 	db_free(out_all);
 	db_free(in_all);
-	WEB_STRACE();
+	
 	return ret;
 	
 }

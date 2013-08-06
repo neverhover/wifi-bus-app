@@ -12,9 +12,9 @@ LIB_D_PATH = $(TARGET_BASE)/lib_so/$(ARCH_NAME)
 LINK_D_LIBS = -lpthread -lm -lrt -ldl -lsqlite3 -ldbif -ljson-c  -L$(LIB_D_PATH)
 LINK_S_LIBS = $(LIB_DIR)/$(LIB_NAME) $(LIB_S_PATH)/libgo.a
 
-IFLAGS   = -I$(TARGET_BASE)/h  -I$(TARGET_BASE)/h/webserver  -I$(TARGET_BASE)/h/db_h  -I$(TARGET_BASE)/h/web_app_h  -I$(TARGET_BASE)/h/dbif -I$(TARGET_BASE)/h/json
+IFLAGS   = -I$(TARGET_BASE)/h  -I$(TARGET_BASE)/h/webserver  -I$(TARGET_BASE)/h/db_h  -I$(TARGET_BASE)/h/web_app_h  -I$(TARGET_BASE)/h/dbif -I$(TARGET_BASE)/h/json -I$(TARGET_BASE)/h/http_client
 DFLAGS   += -D_REENTRANT -DPIC  $(patsubst %,-D%,$(filter BIT_%,$(MAKEFLAGS))) -DBIT_PACK_EST=$(BIT_PACK_EST) -DBIT_PACK_SSL=$(BIT_PACK_SSL)
-LDFLAGS		+= '-Wl,--enable-new-dtags' '-Wl,-rpath,$$ORIGIN/' '-rdynamic'
+LDFLAGS  += '-Wl,--enable-new-dtags' '-Wl,-rpath,$$ORIGIN/' '-rdynamic'
 
 $(TARGET_DIR)/$(TARGET_NAME): $(OBJ_DIR) $(OBJS) $(SUBDIRS) $(LIB_DIR)/$(LIB_NAME)
 	$(CC) -O2 $(OBJS) $(LINK_S_LIBS) $(LINK_D_LIBS) -o $(TARGET_DIR)/$(TARGET_NAME)

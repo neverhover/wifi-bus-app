@@ -17,5 +17,7 @@ int web_func_init(){
 	websDefineAction("bus_base", action_bus_base_process);
 	websDefineAction("bus_realtime", action_bus_realtime_line_process);
 	websDefineAction("bus_config", action_bus_config_process);
+	websDefineAction("bus_help", action_bus_help_process);
+	//websDefineAction("uri_service", action_bus_web_uri_process);
 }
 

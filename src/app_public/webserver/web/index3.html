@@ -33,6 +33,20 @@
                 }
                 $.mobile.urlHistory.clearForward();
 		    });
+		    $( document ).bind( "pageinit", function( e ) {
+		    	$('#bus_href').click(function(){
+		    		
+		    		$('#app_sec').hide();
+		    		$('#bus_sec').show();
+		    		
+		    	});
+		    	$('#app_href').click(function(){
+		    		
+		    		$('#app_sec').show();
+		    		$('#bus_sec').hide();
+		    		
+		    	});
+		    });
 		})( jQuery );
 	</script>
 </head>
@@ -46,7 +60,7 @@
 
 	<div data-role="content">	
 		
-		<section class="gallery">
+		<section class="gallery" id="bus_sec">
 			    <ul class="gallery-entries clearfix" style="width:100%;">	
 			   					   			
 			   						   			
@@ -77,27 +91,8 @@
 						
 				</ul>
 		</section>
-	</div>
-	
 
-	<div data-role="footer" data-position="fixed">
-		<div data-role="navbar">
-            <ul>
-                <li><a href="#index_app" data-icon="grid" class="ui-btn-active ui-state-persist">公交</a></li>
-                <li><a href="#index_app2" data-icon="star" >娱乐</a></li>
-            </ul>
-        </div><!-- /navbar -->
-	</div>
-</div>
-
-<div data-role="page" id="index_app2">
-	<div data-role="header" data-position="fixed">
-		<h1>无线公交 <span class="ui-li-count">成都市</span></h1>
-	</div>
-
-	<div data-role="content">	
-		
-		<section class="gallery">
+		<section class="gallery" id="app_sec" style="display: none;">
 			    <ul class="gallery-entries clearfix" style="width:100%;">	
 			   					   			
 						<li class="gallery-item">
@@ -130,13 +125,13 @@
 	<div data-role="footer" data-position="fixed">
 		<div data-role="navbar">
             <ul>
-                <li><a href="#index_app" data-icon="grid">公交</a></li>
-                <li><a href="#index_app2" data-icon="star" class="ui-btn-active ui-state-persist">娱乐</a></li>
-                
+                <li><a id='bus_href' href="#" data-icon="grid" class="ui-btn-active" data-transition="slidefade">公交</a></li>
+                <li><a id='app_href' href="#" data-icon="star" data-transition="slidefade">娱乐</a></li>
             </ul>
         </div><!-- /navbar -->
 	</div>
 </div>
+
 </body>
 </html>
 
