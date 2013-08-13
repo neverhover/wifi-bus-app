@@ -57,9 +57,9 @@
     <script src="/js/position_cmp.js"></script>
     <script src="/js/AreaRestriction.js"></script> <!--用于区域限制 -->
 </head>
-<div data-role="page" id="bus_sta" data-title="换乘查询" data-dom-cache="false">
+<div data-role="page" id="bus_ride" data-title="换乘查询" data-dom-cache="false">
 	<div data-role="header" data-position="fixed">
-		<a href="/index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade">返回</a>
+		<a href="/index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade" data-rel="back">返回</a>
 		<h1>换乘查询</h1>
 		
 	</div>
@@ -79,7 +79,7 @@
 				
 
 				<div data-role="fieldcontain">
-					<a  id="refresh_point" data-role="button" data-icon="refresh" data-iconpos="left" data-mini="true" data-theme="e">切换</a>
+					<a  id="refresh_point" data-role="button" data-icon="refresh" data-iconpos="left" data-mini="true" data-theme="e" >切换</a>
 					<a id="search_btn" href="#" data-role="button" data-inline="true" data-transition="slidefade" style="display:none;">查询</a>
 					<input type="button" value="查询"  data-theme="b" id="bus_commit">
 				<div>
