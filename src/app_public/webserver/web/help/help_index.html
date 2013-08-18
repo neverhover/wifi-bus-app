@@ -1,89 +1,36 @@
-<div data-role="page" id="index_help" data-theme="e">
+<div data-role="page" id="index_help" data-theme="e" ms-controller="mod_help_index">
 	<div data-role="header" data-position="fixed">
 		<a href="/index.html" data-role="button" data-icon="back" data-iconpos="left" data-inline="true" data-theme="b" data-transition="slidefade" data-rel="back">返回</a>
-		<h1>紧急求助 <span class="ui-li-count">成都市</span></h1>
+		<h1>紧急救助 <span class="ui-li-count">成都市</span></h1>
 	</div>
 
-	<div data-role="content">	
+	<div data-role="content" >	
 		
 		<section class="gallery" id="help_li">
-			    <ul class="gallery-entries clearfix">	
+			    <ul class="gallery-entries clearfix" ms-each-help="vm_helps">	
 			   					   			
 			   						   			
 						<li class="gallery-item">
-							<a href="#dialog" data-rel="popup" data-position-to="window" data-transition="pop" ><img src="http://www.jqmgallery.com/wp-content/uploads/2011/10/hadthatbeer-160.jpg"/>
-							<h3>突发疾病</h3>
+							<a href="#dialog" data-rel="popup" data-position-to="window" data-transition="pop" ms-data-help-index="$index" ms-click='dialog_show'><img src="http://www.jqmgallery.com/wp-content/uploads/2011/10/hadthatbeer-160.jpg"/>
+							<h3>{{help.label}}</h3>
 							</a>
 							                 
 						</li>
 								   			
-			   						   			
-						<li class="gallery-item">
-							<a href="#dialog" data-rel="popup" data-position-to="window" data-transition="pop"><img src="http://www.jqmgallery.com/wp-content/uploads/2011/10/box-160.jpg"/>
-							<h3>火灾险情</h3>
-							</a>
-							                 
-						</li>
-								   			
-			   						   			
-						<li class="gallery-item">
-							<a href="#dialog" data-rel="popup" data-position-to="window" data-transition="pop"><img src="http://www.jqmgallery.com/wp-content/uploads/2011/10/hookerbeer-160.jpg"/>
-							<h3>危险品举报</h3>
-							</a>
-							                 
-						</li>
-								   			
-			   						   			
-						<li class="gallery-item">
-							<a href="#dialog" data-rel="popup" data-position-to="window" data-transition="pop"><img src="http://www.jqmgallery.com/wp-content/uploads/2011/08/cdric-160.jpg"/>
-							<h3>老幼走失</h3>
-							</a>
-							                 
-						</li>
-								   			
-			   						   			
-						<li class="gallery-item">
-							<a href="#dialog" data-rel="popup" data-position-to="window" data-transition="pop"><img src="http://www.jqmgallery.com/wp-content/uploads/2011/08/hunch-160.jpg"/>
-							<h3>偷盗抢劫</h3>
-							</a>
-							                 
-						</li>
-								   			
-			   						   			
-						<li class="gallery-item">
-							<a href="#dialog" data-rel="popup" data-position-to="window" data-transition="pop"><img src="http://www.jqmgallery.com/wp-content/uploads/2011/08/cookpad-160.jpg"/>
-							<h3>暴力纠纷</h3>
-							</a>
-							                 
-						</li>
-
-
-						<li class="gallery-item">
-							<a href="#dialog" data-rel="popup" data-position-to="window" data-transition="pop"><img src="http://www.jqmgallery.com/wp-content/uploads/2011/08/veev-160.jpg"/>
-							<h3>物品遗失</h3>
-							</a>
-							                 
-						</li>
-
-						<li class="gallery-item">
-							<a href="#dialog" data-rel="popup" data-position-to="window" data-transition="pop"><img src="http://www.jqmgallery.com/wp-content/uploads/2011/08/veev-160.jpg"/>
-							<h3>失物招领</h3>
-							</a>
-							                 
-						</li>
+			   			
 				</ul>
 		</section>
 	</div>
 
-	<div data-role="popup" id="dialog" data-overlay-theme="a" data-theme="c" ms-controller="mod_help_index">
+	<div data-role="popup" id="dialog" data-overlay-theme="a" data-theme="c" >
 	    <div data-role="header" data-theme="e">
 	        <h1>{{title}}</h1>
 	    </div>
 	    <div data-role="content" data-theme="d">
-	        <h3><p>尊敬的乘客您好：</p><p>您所述情况属实，虚报愿承担法律责任！</p></h3>
-	       
-	        <a href="#" data-role="button" data-inline="true" data-rel="back" data-theme="b">确定呼叫救助</a>
-	        <a href="#" data-role="button" data-inline="true" data-rel="back" data-theme="c">我再想想</a>
+	        <h4><p>尊敬的乘客您好：</p><p>您所述情况属实，虚报愿承担法律责任！</p></h4>
+	       	<textarea id='manul_info' placeholder='更多详细信息'></textarea>
+	        <a href="#" id='commit_href' data-role="button" data-inline="true" data-rel="back" data-theme="b">确定呼叫救助</a>
+	        <a href="#" id='cancel_href' data-role="button" data-inline="true" data-rel="back" data-theme="c">我再想想</a>
 	    </div>
 	</div>
 
@@ -92,16 +39,72 @@
 	</div>
 
 	<script type="text/javascript">
+
         avalon.ready(function() {
-            
+            var help_arr =[
+			 			 {label:'突发疾病',more_info:'紧急求助,突发疾病'}
+			 			,{label:'火灾险情',more_info:'紧急求助,火灾险情'}
+			 			,{label:'危险品举报',more_info:'紧急求助,危险品举报'}
+			 			,{label:'老幼走失',more_info:'紧急求助,老幼走失'}
+			 			,{label:'暴力纠纷',more_info:'紧急求助,暴力纠纷'}
+			 			,{label:'物品遗失',more_info:'紧急求助,物品遗失'}
+			 			,{label:'失物招领',more_info:'紧急求助,失物招领'}
+			 		];
+			var sel_idx = 0;
             avalon.define("mod_help_index", function(vm) {
             	vm.title="help";
-            	 $('#help_li li a').unbind('click').bind('click',function(){
-			    	//console.log($.trim($(this).text()));
-			    	vm.title = "紧急求助 "+$.trim($(this).text())
-				});
+            	vm.vm_helps = help_arr;
+            	vm.dialog_show = function(){
+            		sel_idx = $(this).data('help-index');
+            		vm.title = help_arr[sel_idx].label;
+            	}
             });
 
+            $('#commit_href').unbind('click').bind('click',function(){
+            	var user_more = $('#manul_info').val();
+            	var send_info = "";
+            	var tmp1 = "";
+            	tmp1 = user_more.replace(/\r/g,'');
+            	tmp1 = tmp1.replace(/\n/g,'');
+            	tmp1 = tmp1.replace(/\s/g,'');
+            	if(user_more == "" || $.trim(user_more) == "" || tmp1 == ""){
+            		send_info = help_arr[sel_idx].more_info;
+            	}else{
+            		user_more = user_more.replace(/\s+/g,',');
+
+            		send_info = help_arr[sel_idx].more_info +"."+user_more+".";
+            	}
+            	
+            	console.log(send_info);
+            	//return false;
+			    $.ajax({
+	       			type: 'GET',
+					url:"/action/bus_help",
+					data: {"help_type":sel_idx,"other_infos": send_info},
+					cache: false,
+					beforeSend:function(){
+						$.mobile.showPageLoadingMsg();
+					},
+					success:function(msg){
+						$('#dialog').popup( "close" );
+						$.mobile.hidePageLoadingMsg();
+						$('#manul_info').val('');
+						$('#manul_info').height('22px');
+						if(msg == "1"){
+							alert("成功发送救助信息");
+						}else{
+							alert("失败,请稍后再试");
+						}
+					},
+					complete:function(){
+						// Hide loading message
+						$('#dialog').popup( "close" );
+						$.mobile.hidePageLoadingMsg();
+					}
+	       		});
+			    
+			    return false;
+			});
             avalon.scan();
         });
     </script>
